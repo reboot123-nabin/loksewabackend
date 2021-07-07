@@ -21,7 +21,7 @@ class UserApiController extends Controller_1.Controller {
     constructor() {
         super(...arguments);
         this.app_key = process.env.APP_KEY || '';
-        this.expiresIn = '1d';
+        this.expiresIn = '7d';
     }
     register(request, response) {
         if (!this.validate(request, response))
@@ -45,6 +45,23 @@ class UserApiController extends Controller_1.Controller {
             return response.status(201).json({ token: token, data: user });
         })).catch(function (err) {
             response.status(500).json({ message: err.message });
+        });
+    }
+    login(request, response) {
+        if (!this.validate(request, response))
+            return;
+        const expiresIn = request.body.rememberMe ? '30d' : this.expiresIn;
+        User_1.User.findOne({ email: request.body.email }, (err, user) => {
+            if (err)
+                return response.status(500).json({ message: err.message });
+            if (!bcryptjs_1.default.compareSync(request.body.password, user.password))
+                return response.status(422).json({ errors: { email: 'Invalid email address or password' } });
+            // if(!user.verifiedAt) return response.status(403).json({message: 'Email is not verified'})
+            jsonwebtoken_1.default.sign({ data: { id: user.id } }, this.app_key, { expiresIn }, function (err, token) {
+                if (err)
+                    return response.status(500).json({ message: err.message });
+                response.json({ token, user });
+            });
         });
     }
 }

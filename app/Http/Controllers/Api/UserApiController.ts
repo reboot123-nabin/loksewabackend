@@ -6,7 +6,7 @@ import jsonwebtoken from 'jsonwebtoken'
 
 export class UserApiController extends Controller {
     app_key : string = process.env.APP_KEY || ''
-    expiresIn : string = '1d'
+    expiresIn : string = '7d'
 
     register(request : Request, response : Response) {
         if(!this.validate(request, response)) return;
@@ -36,6 +36,25 @@ export class UserApiController extends Controller {
             return response.status(201).json({token : token, data : user});
         }).catch(function (err) {
             response.status(500).json({ message: err.message })
+        })
+    }
+
+    login(request : Request, response : Response) {
+        if(!this.validate(request, response)) return;
+
+        const expiresIn = request.body.rememberMe ? '30d' : this.expiresIn
+
+        User.findOne({ email: request.body.email }, (err: any, user: any) => {
+            if (err) return response.status(500).json({message: err.message})
+            if (!bcrypt.compareSync(request.body.password, user.password))
+                return response.status(422).json({errors: {email: 'Invalid email address or password'}})
+            // if(!user.verifiedAt) return response.status(403).json({message: 'Email is not verified'})
+
+            jsonwebtoken.sign({ data: { id: user.id } }, this.app_key, { expiresIn }, function (err: any, token: any) {
+                if (err) return response.status(500).json({message: err.message})
+
+                response.json({ token, user })
+            })
         })
     }
 }

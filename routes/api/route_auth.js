@@ -15,4 +15,9 @@ router.post('/register', [
     body('password').isLength({min: 6}).withMessage('Password must contain at least 6 characters'),
 ], Kernel.map('UserApiController@register'))
 
+router.post('/login', [
+    body('email', 'Provide valid email address').normalizeEmail().isEmail(),
+    body('password').exists({checkFalsy : true}).withMessage('Password is required'),
+], Kernel.map('UserApiController@login'));
+
 module.exports = router
