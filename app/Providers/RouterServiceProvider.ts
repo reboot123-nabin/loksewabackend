@@ -5,6 +5,7 @@ export class RouteServiceProvider extends ServiceProvider {
     
     register() {
         this.mapRoutes()
+        // api application routes
         this.apiRoutes()
 
         // always should be in last
@@ -15,7 +16,9 @@ export class RouteServiceProvider extends ServiceProvider {
         this.app.use('/', require(process.cwd() + '/routes/web'))
     }
 
+    // application routes
     apiRoutes() {
+        this.app.use('/api/v1', require(process.cwd() + '/routes/api/route_auth'))
     }
 
     private errorRoutes() {
