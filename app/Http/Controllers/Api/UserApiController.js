@@ -14,55 +14,76 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserApiController = void 0;
 const Controller_1 = require("../Kernel/Controller");
-const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const File_1 = require("../../../models/File");
 const User_1 = require("../../../models/User");
-const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const bcryptjs_1 = __importDefault(require("bcryptjs"));
 class UserApiController extends Controller_1.Controller {
     constructor() {
-        super(...arguments);
-        this.app_key = process.env.APP_KEY || '';
-        this.expiresIn = '7d';
+        super();
+        this.middleware('Auth');
     }
-    register(request, response) {
+    profile(request, response) {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            const user = (_a = request.auth) === null || _a === void 0 ? void 0 : _a.user();
+            yield user.populate('profileImage').execPopulate();
+            response.json(user);
+        });
+    }
+    profilePicture(request, response) {
+        var _a, _b;
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this.validate(request, response))
+                return;
+            if (!request.file)
+                return response.status(422).json({ errors: { file: 'Please upload an image' } });
+            const image = new File_1.File({
+                file_name: request.file.originalname,
+                path: request.file.path,
+                mimetype: request.file.mimetype,
+                size: request.file.size,
+                user: (_a = request.auth) === null || _a === void 0 ? void 0 : _a.id()
+            });
+            yield image.save();
+            const user = (_b = request.auth) === null || _b === void 0 ? void 0 : _b.user();
+            user.profileImage = image;
+            user.save().then(() => response.status(201).json({ status: 'ok', data: image }))
+                .catch((err) => response.status(500).json({ message: err.message }));
+        });
+    }
+    updateProfile(request, response) {
+        var _a;
         if (!this.validate(request, response))
             return;
-        const salt = bcryptjs_1.default.genSaltSync(Number(process.env.SALT || 10));
-        const newUser = new User_1.User({
+        User_1.User.findByIdAndUpdate((_a = request.auth) === null || _a === void 0 ? void 0 : _a.id(), {
             first_name: request.body.first_name,
             last_name: request.body.last_name,
-            gender: request.body.gender || null,
-            email: request.body.email,
-            password: bcryptjs_1.default.hashSync(request.body.password, salt)
-        });
-        newUser.save().then((user) => __awaiter(this, void 0, void 0, function* () {
-            const code = Math.floor(1000 + Math.random() * 9000);
-            user.code = 1234 || code;
-            user.save();
-            const token = yield jsonwebtoken_1.default.sign({ data: { id: user.id } }, this.app_key, { expiresIn: this.expiresIn });
-            if (process.env.NODE_ENV === 'development') {
-                return response.status(201).json({ data: user, token });
-            }
-            return response.status(201).json({ token: token, data: user });
-        })).catch(function (err) {
-            response.status(500).json({ message: err.message });
-        });
+            gender: request.body.gender,
+            title: request.body.title,
+        }, {
+            useFindAndModify: false,
+            new: true
+        })
+            .then((result) => response.json({ status: 'ok', data: result }))
+            .catch((err) => response.status(500).json({ message: err.message }));
     }
-    login(request, response) {
+    profileCredential(request, response) {
+        var _a;
         if (!this.validate(request, response))
             return;
-        const expiresIn = request.body.rememberMe ? '30d' : this.expiresIn;
-        User_1.User.findOne({ email: request.body.email }, (err, user) => {
-            if (err)
-                return response.status(500).json({ message: err.message });
-            if (!bcryptjs_1.default.compareSync(request.body.password, user.password))
-                return response.status(422).json({ errors: { email: 'Invalid email address or password' } });
-            // if(!user.verifiedAt) return response.status(403).json({message: 'Email is not verified'})
-            jsonwebtoken_1.default.sign({ data: { id: user.id } }, this.app_key, { expiresIn }, function (err, token) {
-                if (err)
-                    return response.status(500).json({ message: err.message });
-                response.json({ token, user });
-            });
-        });
+        const user = (_a = request.auth) === null || _a === void 0 ? void 0 : _a.user();
+        if (!bcryptjs_1.default.compareSync(request.body.old_password, user.password))
+            return response.status(422).json({ errors: { old_password: 'Old password did not match' } });
+        const salt = bcryptjs_1.default.genSaltSync(Number(process.env.SALT || 10));
+        User_1.User.findByIdAndUpdate(user._id, {
+            email: request.body.email,
+            password: bcryptjs_1.default.hashSync(request.body.new_password, salt)
+        }, {
+            useFindAndModify: false,
+            new: true
+        })
+            .then((result) => response.json({ status: 'ok', data: result }))
+            .catch((err) => response.status(500).json({ message: err.message }));
     }
 }
 exports.UserApiController = UserApiController;

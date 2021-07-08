@@ -1,60 +1,74 @@
 import {Controller} from "../Kernel/Controller";
 import {Request, Response} from "express";
-import bcrypt from 'bcryptjs'
-import { User } from "../../../models/User";
-import jsonwebtoken from 'jsonwebtoken'
+import {File} from "../../../models/File";
+import {User} from "../../../models/User";
+import bcrypt from "bcryptjs";
 
 export class UserApiController extends Controller {
-    app_key : string = process.env.APP_KEY || ''
-    expiresIn : string = '7d'
+    constructor() {
+        super();
+        this.middleware('Auth')
+    }
 
-    register(request : Request, response : Response) {
-        if(!this.validate(request, response)) return;
+    async profile(request: Request, response: Response) {
+        const user = request.auth?.user();
+        await user.populate('profileImage').execPopulate()
+        response.json(user)
+    }
+
+    async profilePicture(request: Request, response: Response) {
+        if (!this.validate(request, response)) return
+        if (!request.file) return response.status(422).json({errors: {file: 'Please upload an image'}})
+
+        const image = new File({
+            file_name: request.file.originalname,
+            path: request.file.path,
+            mimetype: request.file.mimetype,
+            size: request.file.size,
+            user: request.auth?.id()
+        })
+        await image.save()
+
+        const user = request.auth?.user()
+        user.profileImage = image
+
+        user.save().then(() => response.status(201).json({status: 'ok', data: image}))
+            .catch((err: Error) => response.status(500).json({message: err.message}));
+    }
+
+    updateProfile(request: Request, response: Response) {
+        if (!this.validate(request, response)) return;
+
+        User.findByIdAndUpdate(request.auth?.id(), {
+            first_name: request.body.first_name,
+            last_name: request.body.last_name,
+            gender: request.body.gender,
+            title: request.body.title,
+        }, {
+            useFindAndModify: false,
+            new: true
+        })
+            .then((result: any) => response.json({status: 'ok', data: result}))
+            .catch((err: Error) => response.status(500).json({message: err.message}))
+    }
+
+    profileCredential(request: Request, response: Response) {
+        if (!this.validate(request, response)) return;
+
+        const user = request.auth?.user()
+        if (!bcrypt.compareSync(request.body.old_password, user.password))
+            return response.status(422).json({errors: {old_password: 'Old password did not match'}})
 
         const salt = bcrypt.genSaltSync(Number(process.env.SALT || 10))
 
-        const newUser = new User({
-            first_name: request.body.first_name,
-            last_name: request.body.last_name,
-            gender : request.body.gender || null,
+        User.findByIdAndUpdate(user._id, {
             email: request.body.email,
-            password: bcrypt.hashSync(request.body.password, salt)
+            password: bcrypt.hashSync(request.body.new_password, salt)
+        }, {
+            useFindAndModify: false,
+            new: true
         })
-
-        newUser.save().then(async (user: any) => {
-
-            const code = Math.floor(1000 + Math.random() * 9000)
-            user.code = 1234 || code
-            user.save()
-
-            const token = await jsonwebtoken.sign({data : {id : user.id}}, this.app_key, {expiresIn : this.expiresIn})
-
-            if (process.env.NODE_ENV === 'development') {
-                return response.status(201).json({data : user, token})
-            }
-
-            return response.status(201).json({token : token, data : user});
-        }).catch(function (err) {
-            response.status(500).json({ message: err.message })
-        })
-    }
-
-    login(request : Request, response : Response) {
-        if(!this.validate(request, response)) return;
-
-        const expiresIn = request.body.rememberMe ? '30d' : this.expiresIn
-
-        User.findOne({ email: request.body.email }, (err: any, user: any) => {
-            if (err) return response.status(500).json({message: err.message})
-            if (!bcrypt.compareSync(request.body.password, user.password))
-                return response.status(422).json({errors: {email: 'Invalid email address or password'}})
-            // if(!user.verifiedAt) return response.status(403).json({message: 'Email is not verified'})
-
-            jsonwebtoken.sign({ data: { id: user.id } }, this.app_key, { expiresIn }, function (err: any, token: any) {
-                if (err) return response.status(500).json({message: err.message})
-
-                response.json({ token, user })
-            })
-        })
+            .then((result: any) => response.json({status: 'ok', data: result}))
+            .catch((err: Error) => response.status(500).json({message: err.message}))
     }
 }

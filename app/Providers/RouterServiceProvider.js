@@ -17,6 +17,7 @@ class RouteServiceProvider extends ServiceProvider_1.ServiceProvider {
     // application routes
     apiRoutes() {
         this.app.use('/api/v1', require(process.cwd() + '/routes/api/route_auth'));
+        this.app.use('/api/v1', require(process.cwd() + '/routes/api/route_user'));
     }
     errorRoutes() {
         this.app.use('/', require(process.cwd() + '/routes/route_errors'));

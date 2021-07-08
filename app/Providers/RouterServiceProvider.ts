@@ -19,6 +19,7 @@ export class RouteServiceProvider extends ServiceProvider {
     // application routes
     apiRoutes() {
         this.app.use('/api/v1', require(process.cwd() + '/routes/api/route_auth'))
+        this.app.use('/api/v1', require(process.cwd() + '/routes/api/route_user'))
     }
 
     private errorRoutes() {
