@@ -2,6 +2,7 @@ import {Request, Response} from "express"
 import { Controller } from "./Kernel/Controller"
 import fs from 'fs'
 import path from 'path'
+import {File} from "../../models/File";
 
 export class HomeController extends Controller{
     constructor() {
@@ -19,7 +20,10 @@ export class HomeController extends Controller{
      * @param response 
      */
     async responseFile(request : Request, response : Response) {
-        const filePath = path.join(process.cwd(), request.params.filename)
+        const file : any = await File.findById(request.params.id, 'path')
+        if(!file) return response.status(404).json({message : 'File not found'})
+
+        const filePath = path.join(process.cwd(), file.path)
         if (fs.existsSync(filePath)) {
             return response.sendFile(filePath)
         }
