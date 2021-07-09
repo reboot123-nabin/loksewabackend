@@ -18,6 +18,7 @@ export class LoginApiController extends Controller {
             last_name: request.body.last_name,
             gender : request.body.gender || null,
             email: request.body.email,
+            phone : request.body.phone,
             password: bcrypt.hashSync(request.body.password, salt)
         })
 
@@ -43,11 +44,19 @@ export class LoginApiController extends Controller {
         if(!this.validate(request, response)) return;
 
         const expiresIn = request.body.rememberMe ? '30d' : this.expiresIn
-
-        User.findOne({ email: request.body.email }, (err: any, user: any) => {
+        const res = {errors: {email: 'Your login credentials did not match our records.'}};
+        let attempted = false;
+        const getAccessToken = (err: any, user: any) => {
+            if(!user) {
+                if(attempted) 
+                    return response.status(422).json(res);
+                    
+                attempted = true;
+                return User.findOne({ phone: request.body.email }, getAccessToken);
+            }
             if (err) return response.status(500).json({message: err.message})
             if (!bcrypt.compareSync(request.body.password, user.password))
-                return response.status(422).json({errors: {email: 'Invalid email address or password'}})
+                return response.status(422).json(res)
             // if(!user.verifiedAt) return response.status(403).json({message: 'Email is not verified'})
 
             jsonwebtoken.sign({ data: { id: user.id } }, this.app_key, { expiresIn }, function (err: any, token: any) {
@@ -55,6 +64,7 @@ export class LoginApiController extends Controller {
 
                 response.json({ token, user })
             })
-        })
+        };
+        User.findOne({ email: request.body.email }, getAccessToken)
     }
 }

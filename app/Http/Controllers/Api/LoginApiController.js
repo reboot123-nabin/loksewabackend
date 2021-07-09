@@ -32,6 +32,7 @@ class LoginApiController extends Controller_1.Controller {
             last_name: request.body.last_name,
             gender: request.body.gender || null,
             email: request.body.email,
+            phone: request.body.phone,
             password: bcryptjs_1.default.hashSync(request.body.password, salt)
         });
         newUser.save().then((user) => __awaiter(this, void 0, void 0, function* () {
@@ -51,18 +52,27 @@ class LoginApiController extends Controller_1.Controller {
         if (!this.validate(request, response))
             return;
         const expiresIn = request.body.rememberMe ? '30d' : this.expiresIn;
-        User_1.User.findOne({ email: request.body.email }, (err, user) => {
+        const res = { errors: { email: 'Your login credentials did not match our records.' } };
+        let attempted = false;
+        const getAccessToken = (err, user) => {
+            if (!user) {
+                if (attempted)
+                    return response.status(422).json(res);
+                attempted = true;
+                return User_1.User.findOne({ phone: request.body.email }, getAccessToken);
+            }
             if (err)
                 return response.status(500).json({ message: err.message });
             if (!bcryptjs_1.default.compareSync(request.body.password, user.password))
-                return response.status(422).json({ errors: { email: 'Invalid email address or password' } });
+                return response.status(422).json(res);
             // if(!user.verifiedAt) return response.status(403).json({message: 'Email is not verified'})
             jsonwebtoken_1.default.sign({ data: { id: user.id } }, this.app_key, { expiresIn }, function (err, token) {
                 if (err)
                     return response.status(500).json({ message: err.message });
                 response.json({ token, user });
             });
-        });
+        };
+        User_1.User.findOne({ email: request.body.email }, getAccessToken);
     }
 }
 exports.LoginApiController = LoginApiController;
