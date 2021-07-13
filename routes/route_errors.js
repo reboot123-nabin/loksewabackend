@@ -8,8 +8,11 @@ router.get('/404', function (request, response) {
     response.status(404).render('errors/404')
 })
 
-router.get('*', function (request, response) {
-    response.status(404).render('errors/404')
+router.all('/api/*', function (request, response) {
+    return response.status(404).json({
+        message : 'Page not found'
+    })
+    // response.status(404).render('errors/404')
 })
 
 module.exports = router

@@ -16,6 +16,7 @@ exports.HomeController = void 0;
 const Controller_1 = require("./Kernel/Controller");
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
+const File_1 = require("../../models/File");
 class HomeController extends Controller_1.Controller {
     constructor() {
         super();
@@ -31,7 +32,10 @@ class HomeController extends Controller_1.Controller {
      */
     responseFile(request, response) {
         return __awaiter(this, void 0, void 0, function* () {
-            const filePath = path_1.default.join(process.cwd(), request.params.filename);
+            const file = yield File_1.File.findById(request.params.id, 'path');
+            if (!file)
+                return response.status(404).json({ message: 'File not found' });
+            const filePath = path_1.default.join(process.cwd(), file.path);
             if (fs_1.default.existsSync(filePath)) {
                 return response.sendFile(filePath);
             }
