@@ -7,7 +7,7 @@ export class QuestionApiController extends Controller {
 
     constructor() {
         super()
-        this.middleware('Auth')
+        this.except('Admin', 'getAll')
     }
 
     saveQuestion(request : Request, response : Response) {
@@ -22,4 +22,13 @@ export class QuestionApiController extends Controller {
         .catch((err : Error) => response.status(500).json({message : err.message}))
     }
 
+    getAll(request : Request, response : Response) {
+        Question.find({}, (err : Error, results : Document[]) => {
+            if(err) return response.status(500).json({message : err.message})
+            response.json({
+                meta : {},
+                data : results
+            })
+        })
+    }
 }

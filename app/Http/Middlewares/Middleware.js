@@ -4,7 +4,11 @@ exports.Middleware = void 0;
 const FakeMiddleware_1 = require("./FakeMiddleware");
 const TrimString_1 = require("./TrimString");
 const AuthMiddleware_1 = require("./AuthMiddleware");
+const AdminMiddleware_1 = require("./AdminMiddleware");
 class Middleware {
+    constructor() {
+        this.dependencies = [];
+    }
     /**
      * @return {Function} Function
      * @param middleware
@@ -16,8 +20,10 @@ class Middleware {
                 middlewareInstance = TrimString_1.TrimString.getInstance();
                 break;
             case 'Auth': middlewareInstance = AuthMiddleware_1.AuthMiddleware.getInstance();
+            case 'Admin': middlewareInstance = AdminMiddleware_1.AdminMiddleware.getInstance();
         }
-        return middlewareInstance.handle.bind(middlewareInstance);
+        const dependencies = middlewareInstance.dependencies.map((middleware) => middleware.handle.bind(middleware));
+        return [...dependencies, middlewareInstance.handle.bind(middlewareInstance)];
     }
 }
 exports.Middleware = Middleware;

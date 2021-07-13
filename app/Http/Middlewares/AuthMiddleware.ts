@@ -12,6 +12,9 @@ export class AuthMiddleware extends Middleware {
     app_key : string = process.env.APP_KEY || 'basantashubhu'
     
     handle(request : Request, response : Response, next : NextFunction)  {
+        if(request.auth?.id()) {
+            return next()
+        }
         const tokenVerifier = this.verifyNext(request, response, next)
         if(request.cookies.token) {
             tokenVerifier.token(request.cookies.token)

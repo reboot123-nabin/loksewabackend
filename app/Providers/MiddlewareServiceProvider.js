@@ -16,7 +16,8 @@ class MiddlewareServiceProvider extends ServiceProvider_1.ServiceProvider {
         if (this.kernel !== null) {
             this.kernel.middlewares.forEach((rule) => {
                 this.app.use((request, response, next) => {
-                    Middleware_1.Middleware.resolve(rule)(request, response, next);
+                    for (const middleware of Middleware_1.Middleware.resolve(rule))
+                        middleware(request, response, next);
                 });
             });
         }
