@@ -4,6 +4,11 @@ const QuestionSchema = new mongoose.Schema(
     {
         label : String,
         category : String,
+        difficulty : {
+            type : String,
+            enum : ['Easy', 'Medium', 'Hard'],
+            defaultValue : 'Easy',
+        },
         options : [{value : String, is_correct : Boolean}]
     }, 
     {

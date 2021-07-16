@@ -6,7 +6,7 @@ const Controller_1 = require("../Kernel/Controller");
 class QuestionApiController extends Controller_1.Controller {
     constructor() {
         super();
-        this.except('Admin', 'getAll');
+        this.except("Admin", "getAll");
     }
     saveQuestion(request, response) {
         if (!this.validate(request, response))
@@ -14,9 +14,12 @@ class QuestionApiController extends Controller_1.Controller {
         const question = new Question_1.Question({
             label: request.body.label,
             category: request.body.category,
-            options: request.body.options
+            options: request.body.options,
+            difficulty: request.body.difficulty,
         });
-        question.save().then((q) => response.status(201).json(q))
+        question
+            .save()
+            .then((q) => response.status(201).json(q))
             .catch((err) => response.status(500).json({ message: err.message }));
     }
     getAll(request, response) {
@@ -25,7 +28,7 @@ class QuestionApiController extends Controller_1.Controller {
                 return response.status(500).json({ message: err.message });
             response.json({
                 meta: {},
-                data: results
+                data: results,
             });
         });
     }

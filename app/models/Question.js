@@ -8,6 +8,11 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const QuestionSchema = new mongoose_1.default.Schema({
     label: String,
     category: String,
+    difficulty: {
+        type: String,
+        enum: ['Easy', 'Medium', 'Hard'],
+        defaultValue: 'Easy',
+    },
     options: [{ value: String, is_correct: Boolean }]
 }, {
     timestamps: true,
