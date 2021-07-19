@@ -7,6 +7,7 @@ const LoginApiController_1 = require("../Api/LoginApiController");
 const UserApiController_1 = require("../Api/UserApiController");
 const PhoneVerificationController_1 = require("../Api/PhoneVerificationController");
 const QuestionApiController_1 = require("../Api/QuestionApiController");
+const QuizApiController_1 = require("../Api/QuizApiController");
 class Kernel extends BaseKernel_1.BaseKernel {
     /**
      * @param {String} desiredClassName
@@ -19,6 +20,7 @@ class Kernel extends BaseKernel_1.BaseKernel {
             case 'UserApiController': return UserApiController_1.UserApiController.getInstance();
             case 'PhoneVerificationController': return PhoneVerificationController_1.PhoneVerificationController.getInstance();
             case 'QuestionApiController': return QuestionApiController_1.QuestionApiController.getInstance();
+            case 'QuizApiController': return QuizApiController_1.QuizApiController.getInstance();
             default: throw new Error(`Controller [${desiredClassName}] does not exists`);
         }
     }

@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { Document } from "mongoose";
+import { Category } from "../../../models/Category";
 import { Question } from "../../../models/Question";
 import { Controller } from "../Kernel/Controller";
 
@@ -11,7 +12,12 @@ export class QuestionApiController extends Controller {
 
 	saveQuestion(request: Request, response: Response) {
 		if (!this.validate(request, response)) return;
-
+		Category.findOne({ name : request.body.category }, async (err : Error, result : Document|null) => {
+			if(!err && result === null) {
+				const category = new Category({name : request.body.category})
+				await category.save()
+			}
+		})
 		const question = new Question({
 			label: request.body.label,
 			category: request.body.category,

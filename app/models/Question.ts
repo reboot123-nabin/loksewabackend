@@ -1,4 +1,5 @@
 import mongoose from 'mongoose'
+import random from 'mongoose-simple-random'
 
 const QuestionSchema = new mongoose.Schema(
     {
@@ -15,5 +16,5 @@ const QuestionSchema = new mongoose.Schema(
         timestamps : true,
     }
 );
-
+QuestionSchema.plugin(random)
 export const Question = mongoose.model('Question', QuestionSchema)
