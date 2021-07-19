@@ -6,6 +6,10 @@ class AbstractMiddleware extends Singleton_1.Singleton {
 }
 exports.AbstractMiddleware = AbstractMiddleware;
 class Middleware extends AbstractMiddleware {
+    constructor() {
+        super(...arguments);
+        this.dependencies = [];
+    }
     use() {
         return this.handle.bind(this);
     }

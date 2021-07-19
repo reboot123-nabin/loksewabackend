@@ -22,6 +22,10 @@ class AuthMiddleware extends AbstractMiddleware_1.Middleware {
         this.app_key = process.env.APP_KEY || 'basantashubhu';
     }
     handle(request, response, next) {
+        var _a;
+        if ((_a = request.auth) === null || _a === void 0 ? void 0 : _a.id()) {
+            return next();
+        }
         const tokenVerifier = this.verifyNext(request, response, next);
         if (request.cookies.token) {
             tokenVerifier.token(request.cookies.token);

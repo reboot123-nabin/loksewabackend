@@ -2,8 +2,10 @@ import {Request, Response, NextFunction } from "express"
 import { FakeMiddleware } from "./FakeMiddleware"
 import { TrimString } from "./TrimString"
 import {AuthMiddleware} from "./AuthMiddleware";
+import { AdminMiddleware } from "./AdminMiddleware";
 
 export abstract class Middleware {
+    dependencies = []
     /**
      * @param {*} request
      * @param {*} response
@@ -15,13 +17,15 @@ export abstract class Middleware {
      * @return {Function} Function
      * @param middleware
      */
-    static resolve(middleware : string) : Function {
+    static resolve(middleware : string) : Function[] {
         let middlewareInstance : Middleware = FakeMiddleware.getInstance()
         switch(middleware) {
             case 'TrimString' : middlewareInstance = TrimString.getInstance()
                 break
             case 'Auth' : middlewareInstance = AuthMiddleware.getInstance()
+            case 'Admin' : middlewareInstance = AdminMiddleware.getInstance()
         }
-        return middlewareInstance.handle.bind(middlewareInstance)
+        const dependencies = middlewareInstance.dependencies.map((middleware : any) => middleware.handle.bind(middleware))
+        return [...dependencies, middlewareInstance.handle.bind(middlewareInstance)]
     }
 }

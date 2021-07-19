@@ -23,14 +23,14 @@ class BaseKernel extends Singleton_1.Singleton {
         return self.handle(controller, controllerFunction);
     }
     handle(requestHandler, handlerFunction) {
-        const handlerArray = [];
+        let handlerArray = [];
         const exclusive = requestHandler.exclusive.map(x => x.split(':')[0]);
         requestHandler.rules.forEach(rule => {
             if (requestHandler.excepts.indexOf(`${rule}:${handlerFunction}`) > -1)
                 return;
             if (exclusive.indexOf(rule) > -1 && requestHandler.exclusive.length && requestHandler.exclusive.indexOf(`${rule}:${handlerFunction}`) < 0)
                 return;
-            handlerArray.push(Middleware_1.Middleware.resolve(rule));
+            handlerArray = handlerArray.concat(Middleware_1.Middleware.resolve(rule));
         });
         handlerArray.push(requestHandler.resolve(handlerFunction).bind(requestHandler));
         return handlerArray;

@@ -12,7 +12,8 @@ export class MiddlewareServiceProvider extends ServiceProvider {
         if (this.kernel !== null) {
             this.kernel.middlewares.forEach((rule : string) => {
                 this.app.use((request : Request, response : Response, next : NextFunction) => {
-                    Middleware.resolve(rule)(request, response, next)
+                    for(const middleware of Middleware.resolve(rule))
+                        middleware(request, response, next)
                 })
             })
         }

@@ -27,12 +27,12 @@ export abstract class BaseKernel extends Singleton{
     }
 
     handle(requestHandler : Controller, handlerFunction : string) {
-        const handlerArray: Function[] = []
+        let handlerArray: Function[] = []
         const exclusive = requestHandler.exclusive.map(x => x.split(':')[0])
         requestHandler.rules.forEach(rule => {
             if (requestHandler.excepts.indexOf(`${ rule }:${ handlerFunction }`) > -1) return
             if (exclusive.indexOf(rule) > -1 && requestHandler.exclusive.length && requestHandler.exclusive.indexOf(`${ rule }:${ handlerFunction }`) < 0) return
-            handlerArray.push(Middleware.resolve(rule))
+            handlerArray = handlerArray.concat(Middleware.resolve(rule))
         })
         handlerArray.push(requestHandler.resolve(handlerFunction).bind(requestHandler))
 

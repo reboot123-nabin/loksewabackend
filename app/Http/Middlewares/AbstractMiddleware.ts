@@ -12,6 +12,7 @@ export abstract class AbstractMiddleware extends Singleton implements AbstractMi
 }
 
 export abstract class Middleware extends AbstractMiddleware{
+    dependencies : AbstractMiddleware[] = []
     use() {
         return this.handle.bind(this)
     }

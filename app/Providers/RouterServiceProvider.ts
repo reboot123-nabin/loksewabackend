@@ -20,6 +20,8 @@ export class RouteServiceProvider extends ServiceProvider {
     apiRoutes() {
         this.app.use('/api/v1', require(process.cwd() + '/routes/api/route_auth'))
         this.app.use('/api/v1', require(process.cwd() + '/routes/api/route_user'))
+        this.app.use('/api/v1', require(process.cwd() + '/routes/api/route_question'))
+        this.app.use('/api/v1', require(process.cwd() + '/routes/api/route_quiz'))
     }
 
     private errorRoutes() {
