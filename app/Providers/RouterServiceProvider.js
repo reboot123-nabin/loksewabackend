@@ -20,6 +20,7 @@ class RouteServiceProvider extends ServiceProvider_1.ServiceProvider {
         this.app.use('/api/v1', require(process.cwd() + '/routes/api/route_user'));
         this.app.use('/api/v1', require(process.cwd() + '/routes/api/route_question'));
         this.app.use('/api/v1', require(process.cwd() + '/routes/api/route_quiz'));
+        this.app.use('/api/v1', require(process.cwd() + '/routes/api/route_category'));
     }
     errorRoutes() {
         this.app.use('/', require(process.cwd() + '/routes/route_errors'));
