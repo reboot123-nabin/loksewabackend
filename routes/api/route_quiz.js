@@ -21,4 +21,11 @@ router.get('/quizzes', Kernel.map('QuizApiController@getAll'))
 
 router.get('/quiz/:id', Kernel.map('QuizApiController@findOne'))
 
+router.post('/quiz/attempt', [
+    body('quiz', 'Required').exists({checkFalsy}),
+    body('answers.*.question', 'Required').exists({ checkFalsy }),
+    body('answers.*.answer', 'Required').exists({ checkNull: true }),
+    body('answers', 'Required').exists({ checkFalsy }).isArray().withMessage('Answers must be an array')
+], Kernel.map('QuizApiController@attempt'))
+
 module.exports = router
