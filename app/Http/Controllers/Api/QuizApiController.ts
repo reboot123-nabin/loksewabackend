@@ -6,6 +6,13 @@ import { Quiz } from "../../../models/Quiz";
 import { Controller } from "../Kernel/Controller";
 
 export class QuizApiController extends Controller {
+	
+	constructor() {
+		super()
+		
+		this.middleware('Auth')
+	}
+	
 	async createQuiz(request: Request, response: Response) {
 		if (!this.validate(request, response)) return;
 
@@ -42,7 +49,7 @@ export class QuizApiController extends Controller {
 	async findOne(request: Request, response: Response) {
 		const quiz = await Quiz.findById(request.params.id).populate(
 			"questions",
-			"label category options.value options._id"
+			"label category options.value options._id" + (request.auth?.user('userType') === 'admin' ? ' options.is_correct' : '')
 		);
 		response.json(quiz);
 	}

@@ -15,6 +15,10 @@ const Question_1 = require("../../../models/Question");
 const Quiz_1 = require("../../../models/Quiz");
 const Controller_1 = require("../Kernel/Controller");
 class QuizApiController extends Controller_1.Controller {
+    constructor() {
+        super();
+        this.middleware('Auth');
+    }
     createQuiz(request, response) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!this.validate(request, response))
@@ -45,8 +49,9 @@ class QuizApiController extends Controller_1.Controller {
         });
     }
     findOne(request, response) {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
-            const quiz = yield Quiz_1.Quiz.findById(request.params.id).populate("questions", "label category options.value options._id");
+            const quiz = yield Quiz_1.Quiz.findById(request.params.id).populate("questions", "label category options.value options._id" + (((_a = request.auth) === null || _a === void 0 ? void 0 : _a.user('userType')) === 'admin' ? ' options.is_correct' : ''));
             response.json(quiz);
         });
     }
