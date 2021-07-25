@@ -54,15 +54,55 @@ export class QuizApiController extends Controller {
 		response.json(quiz);
 	}
 
-	attempt(request: Request, response: Response) {
+	async attempt(request: Request, response: Response) {
 		if (!this.validate(request, response)) return;
-		const attempt = new Attempt({
-			quiz: request.body.quiz,
-			answers: request.body.answer,
-		});
+
+		let attempt = await Attempt.findOne({
+			quiz : request.params.quiz,
+			user : request.auth?.id()
+		}).populate('quiz');
+
+		if(attempt !== null) {
+			await Quiz.populate(attempt.quiz, {
+				path : 'questions',
+				model : Question
+			})
+		}
+
+		if(attempt == null) {
+			attempt = new Attempt({
+				quiz: request.params.quiz,
+				user : request.auth?.id()
+			});
+			await Attempt.populate(attempt, {
+				path : 'quiz',
+				populate : {
+					path : 'questions'
+				}
+			})
+		}
+
+		let correct = false;
+
+		attempt.quiz.questions.filter((x : Document) => x.id == request.params.question).map((question : Document) => {
+			question.options.map((option : Document) => {
+				if(option.id === request.body.answer) {
+					correct = true
+				}
+				return option
+			})
+			return question
+		})
+				
+		attempt.answers.push({
+			question : request.params.question,
+			answer : request.body.answer,
+			correct
+		})
+
 		attempt
 			.save()
-			.then(() => response.status(201).json({ status: "ok" }))
+			.then(() => response.status(201).json({ status: "ok", correct }))
 			.catch((err: Error) =>
 				response.status(500).json({ message: err.message })
 			);

@@ -6,6 +6,11 @@ const AttemptSchema = new mongoose.Schema(
             type : mongoose.Types.ObjectId,
             ref : 'Quiz'
         },
+        user : {
+            type : mongoose.Types.ObjectId,
+            ref : 'User'
+        },
+        correct : Boolean,
         answers : [
             {
                 question : {
