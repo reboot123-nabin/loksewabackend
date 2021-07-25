@@ -86,7 +86,7 @@ export class QuizApiController extends Controller {
 
 		attempt.quiz.questions.filter((x : Document) => x.id == request.params.question).map((question : Document) => {
 			question.options.map((option : Document) => {
-				if(option.id === request.body.answer) {
+				if(option.id === request.body.answer && option.is_correct) {
 					correct = true
 				}
 				return option
