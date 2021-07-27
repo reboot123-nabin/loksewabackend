@@ -21,7 +21,8 @@ const AttemptSchema = new mongoose_1.default.Schema({
                 type: mongoose_1.default.Types.ObjectId,
                 ref: 'Question'
             },
-            answer: mongoose_1.default.Types.ObjectId
+            answer: mongoose_1.default.Types.ObjectId,
+            correct: Boolean
         }
     ]
 }, {

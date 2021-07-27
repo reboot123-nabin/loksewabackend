@@ -14,6 +14,7 @@ const Attempt_1 = require("../../../models/Attempt");
 const Question_1 = require("../../../models/Question");
 const Quiz_1 = require("../../../models/Quiz");
 const Controller_1 = require("../Kernel/Controller");
+const notificationHelper_1 = require("../../../Helpers/notificationHelper");
 class QuizApiController extends Controller_1.Controller {
     constructor() {
         super();
@@ -29,6 +30,7 @@ class QuizApiController extends Controller_1.Controller {
             }, "label category difficulty options._id options.value", {
                 limit: request.body.count,
             }, (err, results) => __awaiter(this, void 0, void 0, function* () {
+                var _a, _b;
                 if (err)
                     return response.status(500).json({ message: err.message });
                 const quiz = new Quiz_1.Quiz({
@@ -39,6 +41,13 @@ class QuizApiController extends Controller_1.Controller {
                     questions: results === null || results === void 0 ? void 0 : results.map((x) => x.id),
                 });
                 yield quiz.save();
+                //create user notification
+                yield notificationHelper_1.notify({
+                    title: 'New quiz created',
+                    message: `A quiz named '${quiz.title} is created by ${(_a = request.auth) === null || _a === void 0 ? void 0 : _a.user('first_name')}'`,
+                    uri: '/quiz/' + quiz.id,
+                    user: (_b = request.auth) === null || _b === void 0 ? void 0 : _b.id(),
+                });
                 response.status(201).json(quiz);
             }));
         });
@@ -83,15 +92,17 @@ class QuizApiController extends Controller_1.Controller {
                 });
             }
             let correct = false;
-            attempt.quiz.questions.filter((x) => x.id == request.params.question).map((question) => {
-                question.options.map((option) => {
-                    if (option.id === request.body.answer && option.is_correct) {
-                        correct = true;
-                    }
-                    return option;
+            if (typeof attempt.quiz !== 'string')
+                attempt.quiz.questions.filter((x) => x.id == request.params.question).map((question) => {
+                    var _a;
+                    (_a = question === null || question === void 0 ? void 0 : question.options) === null || _a === void 0 ? void 0 : _a.map((option) => {
+                        if (option.id === request.body.answer && option.is_correct) {
+                            correct = true;
+                        }
+                        return option;
+                    });
+                    return question;
                 });
-                return question;
-            });
             attempt.answers.push({
                 question: request.params.question,
                 answer: request.body.answer,

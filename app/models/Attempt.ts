@@ -1,4 +1,19 @@
 import mongoose from 'mongoose'
+import {QuizInterface} from './Quiz'
+
+
+interface Answer{
+    question : string,
+    answer : string,
+    correct : boolean
+}
+
+export interface AttemptInterface extends mongoose.Document{
+    quiz : QuizInterface|string,
+    user : string,
+    correct : boolean,
+    answers : Answer[]
+}
 
 const AttemptSchema = new mongoose.Schema(
     {
@@ -17,7 +32,8 @@ const AttemptSchema = new mongoose.Schema(
                     type : mongoose.Types.ObjectId,
                     ref : 'Question'
                 },
-                answer : mongoose.Types.ObjectId
+                answer : mongoose.Types.ObjectId,
+                correct : Boolean
             }
         ]
     }, 
@@ -26,4 +42,4 @@ const AttemptSchema = new mongoose.Schema(
     }
 );
 
-export const Attempt = mongoose.model('Attempt', AttemptSchema)
+export const Attempt = mongoose.model<AttemptInterface>('Attempt', AttemptSchema)

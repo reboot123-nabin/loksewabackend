@@ -1,9 +1,10 @@
 import { Request, Response } from "express";
 import { Document } from "mongoose";
 import { Attempt } from "../../../models/Attempt";
-import { Question } from "../../../models/Question";
-import { Quiz } from "../../../models/Quiz";
+import {Options, Question, QuestionInterface} from '../../../models/Question';
+import {Quiz, QuizInterface} from '../../../models/Quiz';
 import { Controller } from "../Kernel/Controller";
+import {notify} from '../../../Helpers/notificationHelper'
 
 export class QuizApiController extends Controller {
 	
@@ -35,6 +36,13 @@ export class QuizApiController extends Controller {
 					questions: results?.map((x) => x.id),
 				});
 				await quiz.save();
+				//create user notification
+				await notify({
+					title: 'New quiz created',
+					message: `A quiz named '${quiz.title} is created by ${request.auth?.user('first_name')}'`,
+					uri: '/quiz/' + quiz.id,
+					user: request.auth?.id(),
+				})
 				response.status(201).json(quiz);
 			}
 		);
@@ -84,8 +92,9 @@ export class QuizApiController extends Controller {
 
 		let correct = false;
 
-		attempt.quiz.questions.filter((x : Document) => x.id == request.params.question).map((question : Document) => {
-			question.options.map((option : Document) => {
+		if (typeof attempt.quiz !== 'string')
+		attempt.quiz.questions.filter((x : QuestionInterface) => x.id == request.params.question).map((question : QuestionInterface) => {
+			question?.options?.map((option : Options) => {
 				if(option.id === request.body.answer && option.is_correct) {
 					correct = true
 				}
