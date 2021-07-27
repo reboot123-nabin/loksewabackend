@@ -14,6 +14,7 @@ const NotificationSchema = new mongoose_1.default.Schema({
         type: Boolean,
         defaultValue: false
     },
+    read_at: Date,
     user: { type: mongoose_1.default.Types.ObjectId, ref: 'User' }
 }, {
     timestamps: true

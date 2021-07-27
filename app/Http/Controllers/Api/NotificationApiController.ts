@@ -29,4 +29,17 @@ export class NotificationApiController extends Controller {
         })
     }
 
+    async read(request : Request, response : Response) {
+        const notification = await Notification.findOne({
+            read : false,
+            id : request.params.id
+        })
+        if (!notification) return response.json({status : 'ok'})
+
+        notification.read = true
+        notification.read_at = new Date()
+        await notification.save()
+
+        response.json({status : 'ok'})
+    }
 }

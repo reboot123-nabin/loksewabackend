@@ -40,5 +40,19 @@ class NotificationApiController extends Controller_1.Controller {
             });
         });
     }
+    read(request, response) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const notification = yield Notification_1.Notification.findOne({
+                read: false,
+                id: request.params.id
+            });
+            if (!notification)
+                return response.json({ status: 'ok' });
+            notification.read = true;
+            notification.read_at = new Date();
+            yield notification.save();
+            response.json({ status: 'ok' });
+        });
+    }
 }
 exports.NotificationApiController = NotificationApiController;

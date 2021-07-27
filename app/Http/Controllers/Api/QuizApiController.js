@@ -44,7 +44,7 @@ class QuizApiController extends Controller_1.Controller {
                 //create user notification
                 yield notificationHelper_1.notify({
                     title: 'New quiz created',
-                    message: `A quiz named '${quiz.title} is created by ${(_a = request.auth) === null || _a === void 0 ? void 0 : _a.user('first_name')}'`,
+                    message: `A quiz named '${quiz.title}' is created by ${(_a = request.auth) === null || _a === void 0 ? void 0 : _a.user('first_name')}'`,
                     uri: '/quiz/' + quiz.id,
                     user: (_b = request.auth) === null || _b === void 0 ? void 0 : _b.id(),
                 });

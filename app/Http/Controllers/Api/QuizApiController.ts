@@ -39,7 +39,7 @@ export class QuizApiController extends Controller {
 				//create user notification
 				await notify({
 					title: 'New quiz created',
-					message: `A quiz named '${quiz.title} is created by ${request.auth?.user('first_name')}'`,
+					message: `A quiz named '${quiz.title}' is created by ${request.auth?.user('first_name')}'`,
 					uri: '/quiz/' + quiz.id,
 					user: request.auth?.id(),
 				})
