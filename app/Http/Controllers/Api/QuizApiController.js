@@ -15,6 +15,7 @@ const Question_1 = require("../../../models/Question");
 const Quiz_1 = require("../../../models/Quiz");
 const Controller_1 = require("../Kernel/Controller");
 const notificationHelper_1 = require("../../../Helpers/notificationHelper");
+const RewardPoint_1 = require("../../../models/RewardPoint");
 class QuizApiController extends Controller_1.Controller {
     constructor() {
         super();
@@ -65,7 +66,7 @@ class QuizApiController extends Controller_1.Controller {
         });
     }
     attempt(request, response) {
-        var _a, _b;
+        var _a, _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             if (!this.validate(request, response))
                 return;
@@ -103,6 +104,20 @@ class QuizApiController extends Controller_1.Controller {
                     });
                     return question;
                 });
+            if (correct) {
+                const point = new RewardPoint_1.RewardPoint();
+                point.point = 10;
+                point.remarks = "10 points for correct answer";
+                point.meta = {
+                    quiz: request.params.quiz,
+                    question: request.params.question,
+                    answer: request.body.answer
+                };
+                yield point.save();
+                const user = (_c = request.auth) === null || _c === void 0 ? void 0 : _c.user();
+                user.points = (user.points || 0) + 10;
+                yield user.save();
+            }
             attempt.answers.push({
                 question: request.params.question,
                 answer: request.body.answer,

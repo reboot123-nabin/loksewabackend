@@ -5,6 +5,7 @@ import {Options, Question, QuestionInterface} from '../../../models/Question';
 import {Quiz, QuizInterface} from '../../../models/Quiz';
 import { Controller } from "../Kernel/Controller";
 import {notify} from '../../../Helpers/notificationHelper'
+import {RewardPoint} from '../../../models/RewardPoint'
 
 export class QuizApiController extends Controller {
 	
@@ -102,6 +103,22 @@ export class QuizApiController extends Controller {
 			})
 			return question
 		})
+
+		if (correct) {
+			const point = new RewardPoint()
+			point.point = 10
+			point.remarks = "10 points for correct answer";
+			point.meta = {
+				quiz : request.params.quiz,
+				question : request.params.question,
+				answer : request.body.answer
+			}
+			await point.save()
+
+			const user = request.auth?.user()
+			user.points = (user.points || 0) + 10
+			await user.save()
+		}
 				
 		attempt.answers.push({
 			question : request.params.question,
