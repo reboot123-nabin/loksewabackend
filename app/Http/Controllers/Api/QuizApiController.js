@@ -129,5 +129,16 @@ class QuizApiController extends Controller_1.Controller {
                 .catch((err) => response.status(500).json({ message: err.message }));
         });
     }
+    /**
+     * delete quiz from db
+     * @param request
+     * @param response
+     */
+    deleteQuiz(request, response) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const result = yield Quiz_1.Quiz.findByIdAndDelete(request.params.id, { useFindAndModify: false });
+            response.json({ status: 'ok', result });
+        });
+    }
 }
 exports.QuizApiController = QuizApiController;

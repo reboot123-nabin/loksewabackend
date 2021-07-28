@@ -133,4 +133,14 @@ export class QuizApiController extends Controller {
 				response.status(500).json({ message: err.message })
 			);
 	}
+
+	/**
+	 * delete quiz from db
+	 * @param request
+	 * @param response
+	 */
+	async deleteQuiz(request : Request, response : Response) {
+		const result = await Quiz.findByIdAndDelete(request.params.id, {useFindAndModify : false})
+		response.json({status : 'ok', result })
+	}
 }

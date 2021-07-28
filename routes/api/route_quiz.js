@@ -25,4 +25,6 @@ router.post('/quiz/:quiz/question/:question', [
     body('answer', 'Required').exists({checkFalsy})
 ], Kernel.map('QuizApiController@attempt'))
 
+router.delete('/quiz/:id', Kernel.map('QuizApiController@deleteQuiz'))
+
 module.exports = router
