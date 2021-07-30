@@ -107,7 +107,7 @@ class QuizApiController extends Controller_1.Controller {
                 });
             if (correct) {
                 const point = new RewardPoint_1.RewardPoint();
-                point.point = attempt.quiz.points || 10;
+                point.point = typeof attempt.quiz !== 'string' ? (attempt.quiz.points || 10) : 10;
                 point.remarks = "10 points for correct answer";
                 point.meta = {
                     quiz: request.params.quiz,
