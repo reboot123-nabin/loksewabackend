@@ -80,5 +80,11 @@ class QuestionApiController extends Controller_1.Controller {
             response.json(question);
         });
     }
+    deleteQuestion(request, response) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const result = yield Question_1.Question.findByIdAndDelete(request.params.id, { useFindAndModify: false });
+            response.json({ status: 'ok', result });
+        });
+    }
 }
 exports.QuestionApiController = QuestionApiController;

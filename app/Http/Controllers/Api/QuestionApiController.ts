@@ -72,4 +72,9 @@ export class QuestionApiController extends Controller {
         await question.save()
         response.json(question)
     }
+
+    async deleteQuestion(request : Request, response : Response) {
+        const result = await Question.findByIdAndDelete(request.params.id, {useFindAndModify : false})
+        response.json({status : 'ok', result})
+    }
 }

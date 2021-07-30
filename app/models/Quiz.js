@@ -13,6 +13,10 @@ const QuizSchema = new mongoose_1.default.Schema({
     questions: {
         type: [mongoose_1.default.Types.ObjectId],
         ref: 'Question'
+    },
+    user: {
+        type: mongoose_1.default.Types.ObjectId,
+        ref: 'User'
     }
 }, {
     timestamps: true,

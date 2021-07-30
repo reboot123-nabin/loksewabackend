@@ -31,4 +31,6 @@ router.post('/question/:id/update', [
         .custom(v => Array.isArray(v) && v.filter(x => x.is_correct).length === 1).withMessage('Options must have 1 correct answer among all')
 ], Kernel.map('QuestionApiController@updateQuestion'))
 
+router.delete('/question/:id', Kernel.map('QuestionApiController@deleteQuestion'))
+
 module.exports = router
