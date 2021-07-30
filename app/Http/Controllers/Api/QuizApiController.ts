@@ -33,6 +33,7 @@ export class QuizApiController extends Controller {
 					title: request.body.title,
 					difficulty: request.body.difficulty,
 					category: request.body.category,
+					points : 10,
 					count: request.body.count,
 					questions: results?.map((x) => x.id),
 				});
@@ -106,7 +107,7 @@ export class QuizApiController extends Controller {
 
 		if (correct) {
 			const point = new RewardPoint()
-			point.point = 10
+			point.point = attempt.quiz.points || 10
 			point.remarks = "10 points for correct answer";
 			point.meta = {
 				quiz : request.params.quiz,

@@ -10,6 +10,7 @@ const QuizSchema = new mongoose_1.default.Schema({
     category: String,
     difficulty: String,
     count: Number,
+    points: Number,
     questions: {
         type: [mongoose_1.default.Types.ObjectId],
         ref: 'Question'

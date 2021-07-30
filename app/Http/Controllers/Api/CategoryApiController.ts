@@ -24,6 +24,7 @@ export class CategoryApiController extends Controller {
             title : 'Category wise quiz',
             category : category.name,
             difficulty : 'Medium',
+            points : 3,
             count : 10,
             user : request.auth?.id()
         })

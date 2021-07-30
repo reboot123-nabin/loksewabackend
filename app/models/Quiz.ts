@@ -7,6 +7,7 @@ export interface QuizInterface extends mongoose.Document{
     title : string,
     category : string,
     difficulty : string,
+    points ?: number,
     count : number,
     questions : QuestionInterface[],
     user ?: UserInterface
@@ -18,6 +19,7 @@ const QuizSchema = new mongoose.Schema(
         category : String,
         difficulty : String,
         count : Number,
+        points : Number,
         questions : {
             type : [mongoose.Types.ObjectId],
             ref : 'Question'

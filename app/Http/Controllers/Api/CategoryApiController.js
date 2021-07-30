@@ -35,6 +35,7 @@ class CategoryApiController extends Controller_1.Controller {
                 title: 'Category wise quiz',
                 category: category.name,
                 difficulty: 'Medium',
+                points: 3,
                 count: 10,
                 user: (_a = request.auth) === null || _a === void 0 ? void 0 : _a.id()
             });
