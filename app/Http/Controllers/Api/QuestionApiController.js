@@ -16,7 +16,7 @@ const Controller_1 = require("../Kernel/Controller");
 class QuestionApiController extends Controller_1.Controller {
     constructor() {
         super();
-        this.except("Admin", "getAll");
+        this.except('Admin', 'getAll');
     }
     saveQuestion(request, response) {
         if (!this.validate(request, response))
@@ -46,6 +46,44 @@ class QuestionApiController extends Controller_1.Controller {
                 meta: {},
                 data: results,
             });
+        });
+    }
+    findOne(request, response) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const question = yield Question_1.Question.findById(request.params.id);
+            response.json(question);
+        });
+    }
+    /**
+     * update question db level
+     * @param request
+     * @param response
+     */
+    updateQuestion(request, response) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const question = yield Question_1.Question.findById(request.params.id);
+            if (!question)
+                return response.status(500).json({ message: 'Question not found' });
+            if (!this.validate(request, response))
+                return;
+            question.label = request.body.label;
+            question.category = request.body.category;
+            question.difficulty = request.body.difficulty;
+            if (question.options) {
+                for (let i = 0; i < question.options.length; i++) {
+                    const option = question.options[i];
+                    option.value = request.body.options[i].value;
+                    option.is_correct = request.body.options[i].is_correct;
+                }
+            }
+            yield question.save();
+            response.json(question);
+        });
+    }
+    deleteQuestion(request, response) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const result = yield Question_1.Question.findByIdAndDelete(request.params.id, { useFindAndModify: false });
+            response.json({ status: 'ok', result });
         });
     }
 }

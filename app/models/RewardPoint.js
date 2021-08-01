@@ -3,15 +3,17 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Category = void 0;
+exports.RewardPoint = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
-const CategorySchema = new mongoose_1.default.Schema({
-    name: String,
-    image: {
+const RewardPointSchema = new mongoose_1.default.Schema({
+    user: {
         type: mongoose_1.default.Types.ObjectId,
-        ref: 'File'
-    }
+        ref: 'User'
+    },
+    point: Number,
+    remarks: String,
+    meta: Object
 }, {
-    timestamps: true,
+    timestamps: true
 });
-exports.Category = mongoose_1.default.model('Category', CategorySchema);
+exports.RewardPoint = mongoose_1.default.model('RewardPoint', RewardPointSchema);

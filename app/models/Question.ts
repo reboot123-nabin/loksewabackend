@@ -1,6 +1,15 @@
 import mongoose from 'mongoose'
 import random from 'mongoose-simple-random'
 
+export type Options = {value : string, is_correct : boolean, id : string}
+
+export interface QuestionInterface extends mongoose.Document{
+    label : string,
+    category : string,
+    difficulty : string,
+    options ?: Options[]
+}
+
 const QuestionSchema = new mongoose.Schema(
     {
         label : String,
@@ -17,4 +26,4 @@ const QuestionSchema = new mongoose.Schema(
     }
 );
 QuestionSchema.plugin(random)
-export const Question = mongoose.model('Question', QuestionSchema)
+export const Question = mongoose.model<QuestionInterface>('Question', QuestionSchema)

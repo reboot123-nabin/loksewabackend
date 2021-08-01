@@ -55,7 +55,8 @@ const UserSchema = new mongoose_1.default.Schema({
     bio: {
         type: String,
         required: false
-    }
+    },
+    points: Number
 }, {
     timestamps: true,
 });

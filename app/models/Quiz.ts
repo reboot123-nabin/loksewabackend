@@ -1,4 +1,17 @@
 import mongoose from 'mongoose'
+import {QuestionInterface} from './Question'
+import {UserInterface} from './User'
+
+export interface QuizInterface extends mongoose.Document{
+    id : mongoose.Types.ObjectId,
+    title : string,
+    category : string,
+    difficulty : string,
+    points ?: number,
+    count : number,
+    questions : QuestionInterface[],
+    user ?: UserInterface
+}
 
 const QuizSchema = new mongoose.Schema(
     {
@@ -6,9 +19,14 @@ const QuizSchema = new mongoose.Schema(
         category : String,
         difficulty : String,
         count : Number,
+        points : Number,
         questions : {
             type : [mongoose.Types.ObjectId],
             ref : 'Question'
+        },
+        user : {
+            type : mongoose.Types.ObjectId,
+            ref : 'User'
         }
     },
     {
@@ -16,4 +34,4 @@ const QuizSchema = new mongoose.Schema(
     }
 );
 
-export const Quiz = mongoose.model('Quiz', QuizSchema)
+export const Quiz = mongoose.model<QuizInterface>('Quiz', QuizSchema)

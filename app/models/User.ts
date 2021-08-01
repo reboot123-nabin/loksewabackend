@@ -1,5 +1,17 @@
 import mongoose from 'mongoose'
 
+export interface UserInterface {
+    id : string,
+    title : string,
+    first_name : string,
+    last_name : string,
+    email : string,
+    phone : string,
+    profileImage : string,
+    userType : 'admin' | 'user',
+    points : number
+}
+
 const UserSchema = new mongoose.Schema(
     {
         title : String,
@@ -51,11 +63,12 @@ const UserSchema = new mongoose.Schema(
         bio : {
             type : String,
             required : false
-        }
+        },
+        points : Number
     }, 
     {
         timestamps : true,
     }
 );
 
-export const User = mongoose.model('User', UserSchema)
+export const User = mongoose.model<UserInterface>('User', UserSchema)
