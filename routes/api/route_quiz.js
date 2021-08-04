@@ -21,6 +21,7 @@ router.get('/quizzes', Kernel.map('QuizApiController@getAll'))
 
 router.get('/quiz/:id', Kernel.map('QuizApiController@findOne'))
 
+// attempt quiz
 router.post('/quiz/:quiz/question/:question', [
     body('answer', 'Required').exists({checkFalsy})
 ], Kernel.map('QuizApiController@attempt'))

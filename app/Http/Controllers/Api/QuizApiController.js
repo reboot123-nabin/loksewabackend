@@ -60,10 +60,23 @@ class QuizApiController extends Controller_1.Controller {
         });
     }
     findOne(request, response) {
-        var _a;
+        var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
             const quiz = yield Quiz_1.Quiz.findById(request.params.id).populate("questions", "label category options.value options._id" + (((_a = request.auth) === null || _a === void 0 ? void 0 : _a.user('userType')) === 'admin' ? ' options.is_correct' : ''));
-            response.json(quiz);
+            if (!quiz)
+                return response.status(404).json({ message: 'Quiz not found' });
+            const attempt = yield Attempt_1.Attempt.findOne({
+                quiz: quiz.id.toString(),
+                user: (_b = request.auth) === null || _b === void 0 ? void 0 : _b.id()
+            });
+            const answeredQuestions = (attempt === null || attempt === void 0 ? void 0 : attempt.answers.map(ans => ans.question)) || [];
+            const questions = quiz.questions.map((question) => {
+                const q = question.toObject();
+                q.alreadyAnswered = answeredQuestions.includes(question.id.toString());
+                return q;
+            });
+            // response.json(quiz);
+            response.json(Object.assign(Object.assign({}, quiz.toObject()), { questions, answeredQuestions }));
         });
     }
     attempt(request, response) {
@@ -93,8 +106,21 @@ class QuizApiController extends Controller_1.Controller {
                     }
                 });
             }
+            // check for already answered
+            const exists = attempt.answers.filter(function ({ question }) {
+                return question == request.params.question;
+            });
+            if (exists.length) {
+                return response.json({ status: 'ok1', correct: exists[0].correct });
+            }
             let correct = false;
-            if (typeof attempt.quiz !== 'string')
+            if (typeof attempt.quiz !== 'string') {
+                // check questions exists
+                const questionExists = attempt.quiz.questions.map((q) => q.id.toString()).includes(request.params.question);
+                if (!questionExists) {
+                    return response.status(404).json({ message: 'Question does not exsists' });
+                }
+                // check for correct answer
                 attempt.quiz.questions.filter((x) => x.id == request.params.question).map((question) => {
                     var _a;
                     (_a = question === null || question === void 0 ? void 0 : question.options) === null || _a === void 0 ? void 0 : _a.map((option) => {
@@ -105,10 +131,11 @@ class QuizApiController extends Controller_1.Controller {
                     });
                     return question;
                 });
+            }
             if (correct) {
                 const point = new RewardPoint_1.RewardPoint();
                 point.point = typeof attempt.quiz !== 'string' ? (attempt.quiz.points || 10) : 10;
-                point.remarks = "10 points for correct answer";
+                point.remarks = point.point + " points for correct answer";
                 point.meta = {
                     quiz: request.params.quiz,
                     question: request.params.question,
@@ -116,7 +143,7 @@ class QuizApiController extends Controller_1.Controller {
                 };
                 yield point.save();
                 const user = (_c = request.auth) === null || _c === void 0 ? void 0 : _c.user();
-                user.points = (user.points || 0) + 10;
+                user.points = (user.points || 0) + point.point;
                 yield user.save();
             }
             attempt.answers.push({

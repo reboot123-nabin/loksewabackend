@@ -8,6 +8,7 @@ import { QuestionApiController } from "../Api/QuestionApiController";
 import { QuizApiController } from "../Api/QuizApiController";
 import { CategoryApiController } from "../Api/CategoryApiController";
 import {NotificationApiController} from '../Api/NotificationApiController'
+import {ApiUserQuizController} from '../Api/ApiUserQuizController'
 
 export class Kernel extends BaseKernel{
     
@@ -25,6 +26,7 @@ export class Kernel extends BaseKernel{
             case 'QuizApiController' : return QuizApiController.getInstance()
             case "CategoryApiController" : return CategoryApiController.getInstance()
             case "NotificationApiController" : return NotificationApiController.getInstance()
+            case "ApiUserQuizController" : return ApiUserQuizController.getInstance()
 
             default : throw new Error(`Controller [${desiredClassName}] does not exists`);
         }

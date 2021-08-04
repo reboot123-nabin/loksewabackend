@@ -24,6 +24,7 @@ export class RouteServiceProvider extends ServiceProvider {
         this.app.use('/api/v1', require(process.cwd() + '/routes/api/route_quiz'))
         this.app.use('/api/v1', require(process.cwd() + '/routes/api/route_category'))
         this.app.use('/api/v1', require(process.cwd() + '/routes/api/route_notification'))
+        this.app.use('/api/v1', require(process.cwd() + '/routes/api/route_user_quiz'))
     }
 
     private errorRoutes() {

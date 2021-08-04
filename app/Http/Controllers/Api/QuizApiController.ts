@@ -61,7 +61,20 @@ export class QuizApiController extends Controller {
 			"questions",
 			"label category options.value options._id" + (request.auth?.user('userType') === 'admin' ? ' options.is_correct' : '')
 		);
-		response.json(quiz);
+		if (!quiz) return response.status(404).json({message : 'Quiz not found'})
+
+		const attempt = await Attempt.findOne({
+			quiz : quiz.id.toString(),
+			user : request.auth?.id()
+		})
+		const answeredQuestions = attempt?.answers.map(ans => ans.question) || []
+		const questions = quiz.questions.map((question : QuestionInterface) => {
+			const q = question.toObject()
+			q.alreadyAnswered = answeredQuestions.includes(question.id.toString())
+			return q
+		})
+		// response.json(quiz);
+		response.json({...quiz.toObject(), questions, answeredQuestions});
 	}
 
 	async attempt(request: Request, response: Response) {
@@ -92,23 +105,38 @@ export class QuizApiController extends Controller {
 			})
 		}
 
+		// check for already answered
+		const exists = attempt.answers.filter(function ({question}) {
+			return question == request.params.question
+		});
+		if(exists.length) {
+			return response.json({status : 'ok1', correct : exists[0].correct});
+		}
+
 		let correct = false;
 
-		if (typeof attempt.quiz !== 'string')
-		attempt.quiz.questions.filter((x : QuestionInterface) => x.id == request.params.question).map((question : QuestionInterface) => {
-			question?.options?.map((option : Options) => {
-				if(option.id === request.body.answer && option.is_correct) {
-					correct = true
-				}
-				return option
+		if (typeof attempt.quiz !== 'string') {
+			// check questions exists
+			const questionExists = attempt.quiz.questions.map((q : QuestionInterface) => q.id.toString()).includes(request.params.question)
+			if(!questionExists) {
+				return response.status(404).json({message : 'Question does not exsists'})
+			}
+			// check for correct answer
+			attempt.quiz.questions.filter((x : QuestionInterface) => x.id == request.params.question).map((question : QuestionInterface) => {
+				question?.options?.map((option : Options) => {
+					if(option.id === request.body.answer && option.is_correct) {
+						correct = true
+					}
+					return option
+				})
+				return question
 			})
-			return question
-		})
+		}
 
 		if (correct) {
 			const point = new RewardPoint()
 			point.point = typeof attempt.quiz !== 'string' ? (attempt.quiz.points || 10) : 10
-			point.remarks = "10 points for correct answer";
+			point.remarks = point.point + " points for correct answer";
 			point.meta = {
 				quiz : request.params.quiz,
 				question : request.params.question,
@@ -117,7 +145,7 @@ export class QuizApiController extends Controller {
 			await point.save()
 
 			const user = request.auth?.user()
-			user.points = (user.points || 0) + 10
+			user.points = (user.points || 0) + point.point
 			await user.save()
 		}
 				
