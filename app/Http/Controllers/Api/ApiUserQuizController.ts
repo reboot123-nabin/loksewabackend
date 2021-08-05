@@ -14,7 +14,7 @@ export class ApiUserQuizController extends Controller
     async incompleteQuiz(request : Request, response : Response)
     {
         const incomplete = await Attempt.find({
-            answers : []
+            completed : false
         }, null, {})
             .populate('quiz')
 

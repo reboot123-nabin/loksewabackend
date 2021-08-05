@@ -151,6 +151,9 @@ class QuizApiController extends Controller_1.Controller {
                 answer: request.body.answer,
                 correct
             });
+            if (typeof attempt.quiz !== 'string') {
+                attempt.completed = attempt.quiz.questions.length === attempt.answers.length;
+            }
             attempt
                 .save()
                 .then(() => response.status(201).json({ status: "ok", correct }))

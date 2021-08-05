@@ -19,7 +19,7 @@ const NotificationSchema = new mongoose.Schema({
     meta : JSON,
     read : {
         type : Boolean,
-        defaultValue : false
+        default : false
     },
     read_at : Date,
     user : { type : mongoose.Types.ObjectId, ref : 'User' }

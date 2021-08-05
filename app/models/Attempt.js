@@ -14,7 +14,10 @@ const AttemptSchema = new mongoose_1.default.Schema({
         type: mongoose_1.default.Types.ObjectId,
         ref: 'User'
     },
-    correct: Boolean,
+    completed: {
+        type: Boolean,
+        default: true
+    },
     answers: [
         {
             question: {

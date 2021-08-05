@@ -11,8 +11,8 @@ interface Answer{
 export interface AttemptInterface extends mongoose.Document{
     quiz : QuizInterface|string,
     user : string,
-    correct : boolean,
-    answers : Answer[]
+    answers : Answer[],
+    completed ?: boolean
 }
 
 const AttemptSchema = new mongoose.Schema(
@@ -25,7 +25,10 @@ const AttemptSchema = new mongoose.Schema(
             type : mongoose.Types.ObjectId,
             ref : 'User'
         },
-        correct : Boolean,
+        completed : {
+            type : Boolean,
+            default : true
+        },
         answers : [
             {
                 question : {

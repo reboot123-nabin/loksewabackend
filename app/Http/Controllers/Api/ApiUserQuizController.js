@@ -20,7 +20,7 @@ class ApiUserQuizController extends Controller_1.Controller {
     incompleteQuiz(request, response) {
         return __awaiter(this, void 0, void 0, function* () {
             const incomplete = yield Attempt_1.Attempt.find({
-                answers: []
+                completed: false
             }, null, {})
                 .populate('quiz');
             response.json({

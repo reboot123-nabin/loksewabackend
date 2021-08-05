@@ -67,6 +67,7 @@ export class QuizApiController extends Controller {
 			quiz : quiz.id.toString(),
 			user : request.auth?.id()
 		})
+		
 		const answeredQuestions = attempt?.answers.map(ans => ans.question) || []
 		const questions = quiz.questions.map((question : QuestionInterface) => {
 			const q = question.toObject()
@@ -154,6 +155,10 @@ export class QuizApiController extends Controller {
 			answer : request.body.answer,
 			correct
 		})
+
+		if (typeof attempt.quiz !== 'string') {
+			attempt.completed = attempt.quiz.questions.length === attempt.answers.length;
+		}
 
 		attempt
 			.save()
