@@ -7,7 +7,8 @@ export interface QuestionInterface extends mongoose.Document{
     label : string,
     category : string,
     difficulty : string,
-    options ?: Options[]
+    options ?: Options[],
+    alreadyAnswered ?: boolean
 }
 
 const QuestionSchema = new mongoose.Schema(

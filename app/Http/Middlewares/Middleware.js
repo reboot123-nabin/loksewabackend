@@ -19,8 +19,12 @@ class Middleware {
             case 'TrimString':
                 middlewareInstance = TrimString_1.TrimString.getInstance();
                 break;
-            case 'Auth': middlewareInstance = AuthMiddleware_1.AuthMiddleware.getInstance();
-            case 'Admin': middlewareInstance = AdminMiddleware_1.AdminMiddleware.getInstance();
+            case 'Auth':
+                middlewareInstance = AuthMiddleware_1.AuthMiddleware.getInstance();
+                break;
+            case 'Admin':
+                middlewareInstance = AdminMiddleware_1.AdminMiddleware.getInstance();
+                break;
         }
         const dependencies = middlewareInstance.dependencies.map((middleware) => middleware.handle.bind(middleware));
         return [...dependencies, middlewareInstance.handle.bind(middlewareInstance)];

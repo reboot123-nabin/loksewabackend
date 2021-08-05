@@ -23,7 +23,9 @@ export abstract class Middleware {
             case 'TrimString' : middlewareInstance = TrimString.getInstance()
                 break
             case 'Auth' : middlewareInstance = AuthMiddleware.getInstance()
+                break;
             case 'Admin' : middlewareInstance = AdminMiddleware.getInstance()
+                break;
         }
         const dependencies = middlewareInstance.dependencies.map((middleware : any) => middleware.handle.bind(middleware))
         return [...dependencies, middlewareInstance.handle.bind(middlewareInstance)]
