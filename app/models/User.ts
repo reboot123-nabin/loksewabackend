@@ -7,6 +7,7 @@ export interface UserInterface {
     last_name : string,
     email : string,
     phone : string,
+    password : string,
     profileImage : string,
     userType : 'admin' | 'user',
     points : number
