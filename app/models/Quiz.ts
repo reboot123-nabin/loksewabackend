@@ -34,4 +34,14 @@ const QuizSchema = new mongoose.Schema(
     }
 );
 
+QuizSchema.virtual('attempts', {
+    ref: 'Attempt', //The Model to use
+    localField: '_id', //Find in Model, where localField
+    foreignField: 'quiz', // is equal to foreignField
+});
+
+// Set Object and Json property to true. Default is set to false
+QuizSchema.set('toObject', { virtuals : true });
+QuizSchema.set('toJSON', { virtuals: true });
+
 export const Quiz = mongoose.model<QuizInterface>('Quiz', QuizSchema)
