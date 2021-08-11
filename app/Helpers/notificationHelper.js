@@ -12,7 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.notify = void 0;
 const Notification_1 = require("../models/Notification");
 const notify = (options) => __awaiter(void 0, void 0, void 0, function* () {
-    const notification = new Notification_1.Notification(options);
+    const notification = new Notification_1.Notification(Object.assign(Object.assign({}, options), { read: false }));
     yield notification.save();
 });
 exports.notify = notify;

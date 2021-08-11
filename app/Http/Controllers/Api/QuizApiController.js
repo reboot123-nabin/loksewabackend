@@ -31,7 +31,7 @@ class QuizApiController extends Controller_1.Controller {
             }, "label category difficulty options._id options.value", {
                 limit: request.body.count,
             }, (err, results) => __awaiter(this, void 0, void 0, function* () {
-                var _a, _b;
+                var _a;
                 if (err)
                     return response.status(500).json({ message: err.message });
                 const quiz = new Quiz_1.Quiz({
@@ -46,12 +46,87 @@ class QuizApiController extends Controller_1.Controller {
                 //create user notification
                 yield notificationHelper_1.notify({
                     title: 'New quiz created',
-                    message: `A quiz named '${quiz.title}' is created by ${(_a = request.auth) === null || _a === void 0 ? void 0 : _a.user('first_name')}'`,
+                    message: `A quiz named '${quiz.title}' is created.`,
                     uri: '/quiz/' + quiz.id,
-                    user: (_b = request.auth) === null || _b === void 0 ? void 0 : _b.id(),
+                    user: (_a = request.auth) === null || _a === void 0 ? void 0 : _a.id(),
                 });
                 response.status(201).json(quiz);
             }));
+        });
+    }
+    //User buys quiz with reward (quiz) points
+    purchaseQuiz(request, response) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this.validate(request, response))
+                return;
+            Question_1.Question.findRandom({
+                category: request.body.category,
+            }, "label category difficulty options._id options.value", {
+                limit: request.body.count,
+            }, (err, results) => __awaiter(this, void 0, void 0, function* () {
+                var _a, _b, _c, _d, _e;
+                if (err)
+                    return response.status(500).json({ message: err.message });
+                const p_quiz = new Quiz_1.Quiz({
+                    title: request.body.title,
+                    category: request.body.category,
+                    points: 5,
+                    count: request.body.count,
+                    questions: results === null || results === void 0 ? void 0 : results.map((x) => x.id),
+                    user: (_a = request.auth) === null || _a === void 0 ? void 0 : _a.id(),
+                });
+                yield p_quiz.save();
+                //deduct reward (quiz) points
+                let rp = (_b = request.auth) === null || _b === void 0 ? void 0 : _b.user().points;
+                rp = rp - request.body.count * 3;
+                if ((_c = request.auth) === null || _c === void 0 ? void 0 : _c.user()) {
+                    request.auth.user().points = rp;
+                    yield request.auth.user().save();
+                }
+                //insert in reward points collection
+                const point = new RewardPoint_1.RewardPoint();
+                point.point = -(request.body.count * 3);
+                point.remarks = point.point + " points deducted for quiz purchase";
+                point.user = (_d = request.auth) === null || _d === void 0 ? void 0 : _d.id();
+                yield point.save();
+                //create user notification
+                yield notificationHelper_1.notify({
+                    title: 'Quiz purchased!',
+                    message: `Your quiz is purchased and ready to be played.`,
+                    uri: '/quiz/' + p_quiz.id,
+                    user: (_e = request.auth) === null || _e === void 0 ? void 0 : _e.id(),
+                });
+                response.status(201).json(p_quiz);
+            }));
+        });
+    }
+    //User buys quiz with reward (quiz) points
+    topupBalance(request, response) {
+        var _a, _b, _c, _d;
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this.validate(request, response))
+                return;
+            //deduct reward (quiz) points
+            let rp = (_a = request.auth) === null || _a === void 0 ? void 0 : _a.user().points;
+            rp = rp - request.body.count * 10;
+            if ((_b = request.auth) === null || _b === void 0 ? void 0 : _b.user()) {
+                request.auth.user().points = rp;
+                yield request.auth.user().save();
+            }
+            //insert in reward points collection
+            const point = new RewardPoint_1.RewardPoint();
+            point.point = -(request.body.count * 10);
+            point.remarks = point.point + "points deducted for mobile topip,";
+            point.user = (_c = request.auth) === null || _c === void 0 ? void 0 : _c.id();
+            yield point.save();
+            //create user notification
+            yield notificationHelper_1.notify({
+                title: 'Cashout successful!',
+                message: `Your request has been created. Balance credit may take 2-3 hours. We will notify you when completed.`,
+                uri: '/',
+                user: (_d = request.auth) === null || _d === void 0 ? void 0 : _d.id(),
+            });
+            response.status(201).json({ status: "ok" });
         });
     }
     getAll(request, response) {
@@ -92,7 +167,7 @@ class QuizApiController extends Controller_1.Controller {
         });
     }
     attempt(request, response) {
-        var _a, _b, _c;
+        var _a, _b, _c, _d;
         return __awaiter(this, void 0, void 0, function* () {
             if (!this.validate(request, response))
                 return;
@@ -148,13 +223,14 @@ class QuizApiController extends Controller_1.Controller {
                 const point = new RewardPoint_1.RewardPoint();
                 point.point = typeof attempt.quiz !== 'string' ? (attempt.quiz.points || 10) : 10;
                 point.remarks = point.point + " points for correct answer";
-                point.meta = {
-                    quiz: request.params.quiz,
-                    question: request.params.question,
-                    answer: request.body.answer
-                };
+                point.user = (_c = request.auth) === null || _c === void 0 ? void 0 : _c.id(),
+                    point.meta = {
+                        quiz: request.params.quiz,
+                        question: request.params.question,
+                        answer: request.body.answer
+                    };
                 yield point.save();
-                const user = (_c = request.auth) === null || _c === void 0 ? void 0 : _c.user();
+                const user = (_d = request.auth) === null || _d === void 0 ? void 0 : _d.user();
                 user.points = (user.points || 0) + point.point;
                 yield user.save();
             }
