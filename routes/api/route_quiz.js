@@ -19,7 +19,10 @@ router.post('/quiz', [
 
 router.get('/quizzes', Kernel.map('QuizApiController@getAll'))
 
+router.get('/daily-quizzes', Kernel.map('QuizApiController@getDailyQuizzes'))
+
 router.get('/quiz/:id', Kernel.map('QuizApiController@findOne'))
+router.get('/quiz/find/:id', Kernel.map('QuizApiController@findQuiz'))
 
 // attempt quiz
 router.post('/quiz/:quiz/question/:question', [

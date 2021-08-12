@@ -17,12 +17,18 @@ const Quiz_1 = require("../../../models/Quiz");
 class CategoryApiController extends Controller_1.Controller {
     constructor() {
         super();
-        this.except('Auth', 'getAll');
+        this.except('Auth', 'getAll', 'getAllCategory');
     }
     getAll(request, response) {
         return __awaiter(this, void 0, void 0, function* () {
             const results = yield Category_1.Category.find({});
             response.json(results);
+        });
+    }
+    getAllCategory(request, response) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const results = yield Category_1.Category.find({});
+            response.json({ data: results });
         });
     }
     getQuiz(request, response) {
@@ -50,7 +56,9 @@ class CategoryApiController extends Controller_1.Controller {
                     quiz.questions = results === null || results === void 0 ? void 0 : results.map((question) => question.id);
                 }
                 yield quiz.save();
-                response.status(201).json(Object.assign(Object.assign({}, quiz.toObject()), { questions: results }));
+                response.status(201).json({
+                    quiz: Object.assign(Object.assign({}, quiz.toObject()), { questions: results })
+                });
             }));
         });
     }

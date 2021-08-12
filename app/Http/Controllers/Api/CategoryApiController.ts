@@ -8,12 +8,17 @@ export class CategoryApiController extends Controller {
 
     constructor() {
         super()
-        this.except('Auth', 'getAll')
+        this.except('Auth', 'getAll', 'getAllCategory')
     }
 
     async getAll(request : Request, response : Response) {
         const results = await Category.find({})
         response.json(results)
+    }
+    
+    async getAllCategory(request : Request, response : Response) {
+        const results = await Category.find({})
+        response.json({data : results})
     }
 
     async getQuiz(request : Request, response : Response) {
@@ -39,8 +44,10 @@ export class CategoryApiController extends Controller {
             }
             await quiz.save()
             response.status(201).json({
-                ...quiz.toObject(),
-                questions : results
+                quiz : {
+                    ...quiz.toObject(),
+                    questions : results
+                }
             })
         })
     }

@@ -51,8 +51,14 @@ export class QuizApiController extends Controller {
 	}
 
 	getAll(request: Request, response: Response) {
-		Quiz.find({}, (err: Error, results: Document[] | undefined) => {
+		Quiz.find({user : {$exists : false}}, null, {sort : {createdAt : -1}}, (err: any, results: QuizInterface[]) => {
 			response.json(results);
+		});
+	}
+
+	getDailyQuizzes(request: Request, response: Response) {
+		Quiz.find({user : {$exists : false}}, null, {sort : {createdAt : -1}}, (err: any, results: QuizInterface[]) => {
+			response.json({data : results});
 		});
 	}
 
@@ -76,6 +82,28 @@ export class QuizApiController extends Controller {
 		})
 		// response.json(quiz);
 		response.json({...quiz.toObject(), questions, answeredQuestions});
+	}
+
+	async findQuiz(request: Request, response: Response) {
+		const quiz = await Quiz.findById(request.params.id).populate(
+			"questions",
+			"label category options.value options._id" + (request.auth?.user('userType') === 'admin' ? ' options.is_correct' : '')
+		);
+		if (!quiz) return response.status(404).json({message : 'Quiz not found'})
+
+		const attempt = await Attempt.findOne({
+			quiz : quiz.id.toString(),
+			user : request.auth?.id()
+		})
+		
+		const answeredQuestions = attempt?.answers.map(ans => ans.question) || []
+		const questions = quiz.questions.map((question : QuestionInterface) => {
+			const q = question.toObject()
+			q.alreadyAnswered = answeredQuestions.includes(question.id.toString())
+			return q
+		})
+		// response.json(quiz);
+		response.json({quiz : {...quiz.toObject(), questions, answeredQuestions}});
 	}
 
 	async attempt(request: Request, response: Response) {

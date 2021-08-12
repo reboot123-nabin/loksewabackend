@@ -55,8 +55,13 @@ class QuizApiController extends Controller_1.Controller {
         });
     }
     getAll(request, response) {
-        Quiz_1.Quiz.find({}, (err, results) => {
+        Quiz_1.Quiz.find({ user: { $exists: false } }, null, { sort: { createdAt: -1 } }, (err, results) => {
             response.json(results);
+        });
+    }
+    getDailyQuizzes(request, response) {
+        Quiz_1.Quiz.find({ user: { $exists: false } }, null, { sort: { createdAt: -1 } }, (err, results) => {
+            response.json({ data: results });
         });
     }
     findOne(request, response) {
@@ -77,6 +82,26 @@ class QuizApiController extends Controller_1.Controller {
             });
             // response.json(quiz);
             response.json(Object.assign(Object.assign({}, quiz.toObject()), { questions, answeredQuestions }));
+        });
+    }
+    findQuiz(request, response) {
+        var _a, _b;
+        return __awaiter(this, void 0, void 0, function* () {
+            const quiz = yield Quiz_1.Quiz.findById(request.params.id).populate("questions", "label category options.value options._id" + (((_a = request.auth) === null || _a === void 0 ? void 0 : _a.user('userType')) === 'admin' ? ' options.is_correct' : ''));
+            if (!quiz)
+                return response.status(404).json({ message: 'Quiz not found' });
+            const attempt = yield Attempt_1.Attempt.findOne({
+                quiz: quiz.id.toString(),
+                user: (_b = request.auth) === null || _b === void 0 ? void 0 : _b.id()
+            });
+            const answeredQuestions = (attempt === null || attempt === void 0 ? void 0 : attempt.answers.map(ans => ans.question)) || [];
+            const questions = quiz.questions.map((question) => {
+                const q = question.toObject();
+                q.alreadyAnswered = answeredQuestions.includes(question.id.toString());
+                return q;
+            });
+            // response.json(quiz);
+            response.json({ quiz: Object.assign(Object.assign({}, quiz.toObject()), { questions, answeredQuestions }) });
         });
     }
     attempt(request, response) {
