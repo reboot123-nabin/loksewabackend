@@ -28,5 +28,24 @@ class ApiUserQuizController extends Controller_1.Controller {
             });
         });
     }
+    resultAssessment(request, response) {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            const attempt = yield Attempt_1.Attempt.findOne({
+                quiz: request.params.id,
+                user: (_a = request.auth) === null || _a === void 0 ? void 0 : _a.id()
+            }).populate({
+                path: 'quiz',
+                populate: {
+                    path: 'questions'
+                }
+            });
+            if (!attempt)
+                return response.status(404).json({ message: 'Quiz not found' });
+            return response.json({
+                data: attempt
+            });
+        });
+    }
 }
 exports.ApiUserQuizController = ApiUserQuizController;
