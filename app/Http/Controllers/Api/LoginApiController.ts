@@ -52,7 +52,8 @@ export class LoginApiController extends Controller {
                     return response.status(422).json(res);
                     
                 attempted = true;
-                return User.findOne({ phone: request.body.email }, getAccessToken);
+                const phone = request.body.email?.startsWith('+977') ? request.body.email : `+977${request.body.email}`
+                return User.findOne({ phone }, getAccessToken);
             }
             if (err) return response.status(500).json({message: err.message})
             if (!bcrypt.compareSync(request.body.password, user.password))
