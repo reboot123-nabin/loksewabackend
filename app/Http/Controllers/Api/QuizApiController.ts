@@ -50,10 +50,18 @@ export class QuizApiController extends Controller {
 		);
 	}
 
-	getAll(request: Request, response: Response) {
-		Quiz.find({user : {$exists : false}}, null, {sort : {createdAt : -1}}, (err: any, results: QuizInterface[]) => {
-			response.json(results);
+	async getAll(request: Request, response: Response) {
+		const results = await Quiz.find({}).populate({
+			path : 'attempts',
+			match : {
+				user : request.auth?.id()
+			}
 		});
+		response.json(results.map((q : QuizInterface) => {
+			const quiz : { [key : string] : any } = q.toObject()
+			quiz.completed = quiz.attempts && quiz.attempts[0]?.completed
+			return quiz
+		}));
 	}
 
 	getDailyQuizzes(request: Request, response: Response) {

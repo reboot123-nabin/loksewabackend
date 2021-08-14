@@ -55,8 +55,20 @@ class QuizApiController extends Controller_1.Controller {
         });
     }
     getAll(request, response) {
-        Quiz_1.Quiz.find({ user: { $exists: false } }, null, { sort: { createdAt: -1 } }, (err, results) => {
-            response.json(results);
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            const results = yield Quiz_1.Quiz.find({}).populate({
+                path: 'attempts',
+                match: {
+                    user: (_a = request.auth) === null || _a === void 0 ? void 0 : _a.id()
+                }
+            });
+            response.json(results.map((q) => {
+                var _a;
+                const quiz = q.toObject();
+                quiz.completed = quiz.attempts && ((_a = quiz.attempts[0]) === null || _a === void 0 ? void 0 : _a.completed);
+                return quiz;
+            }));
         });
     }
     getDailyQuizzes(request, response) {
