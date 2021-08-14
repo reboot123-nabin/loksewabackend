@@ -76,29 +76,31 @@ export class QuizApiController extends Controller {
 				await p_quiz.save();
 
 				//deduct reward (quiz) points
-				let rp = request.auth?.user().points
-				rp = rp - request.body.count * 3
-				if (request.auth?.user()) {
-					request.auth.user().points = rp
-					await request.auth.user().save()
-				}
+				const rp = request.auth?.user().points
+				const deductAmt = request.body.count * 3
+				if (deductAmt <= rp) {
+					const new_rp = rp - deductAmt
+					if (request.auth?.user()) {
+						request.auth.user().points = new_rp
+						await request.auth.user().save()
+					}
 
-				//insert in reward points collection
+					//insert in reward points collection
+					const point = new RewardPoint()
+					point.point = -(request.body.count * 3)
+					point.remarks = point.point + " points deducted for quiz purchase";
+					point.user = request.auth?.id()
+					await point.save()
 
-				const point = new RewardPoint()
-				point.point = -(request.body.count * 3)
-				point.remarks = point.point + " points deducted for quiz purchase";
-				point.user = request.auth?.id()
-				await point.save()
-
-				//create user notification
-				await notify({
-					title: 'Quiz purchased!',
-					message: `Your quiz is purchased and ready to be played.`,
-					uri: '/quiz/' + p_quiz.id,
-					user: request.auth?.id(),
-				})
-				response.status(201).json(p_quiz);
+					//create user notification
+					await notify({
+						title: 'Quiz purchased!',
+						message: `Your quiz is purchased and ready to be played.`,
+						uri: '/quiz/' + p_quiz.id,
+						user: request.auth?.id(),
+					})
+					response.status(400).json(p_quiz);
+				} else return response.status(201).json({ message: "Not enough balance." })
 			}
 		);
 	}
@@ -109,28 +111,31 @@ export class QuizApiController extends Controller {
 		if (!this.validate(request, response)) return;
 
 		//deduct reward (quiz) points
-		let rp = request.auth?.user().points
-		rp = rp - request.body.count * 10
-		if (request.auth?.user()) {
-			request.auth.user().points = rp
-			await request.auth.user().save()
-		}
+		const rp = request.auth?.user().points
+		const deductAmt = request.body.count * 3
+		if (deductAmt <= rp) {
+			const new_rp = rp - deductAmt
+			if (request.auth?.user()) {
+				request.auth.user().points = new_rp
+				await request.auth.user().save()
+			}
 
-		//insert in reward points collection
-		const point = new RewardPoint()
-		point.point = -(request.body.count * 10)
-		point.remarks = point.point + "points deducted for mobile topip,";
-		point.user = request.auth?.id()
-		await point.save()
+			//insert in reward points collection
+			const point = new RewardPoint()
+			point.point = -(request.body.count * 10)
+			point.remarks = point.point + "points deducted for mobile topip,";
+			point.user = request.auth?.id()
+			await point.save()
 
-		//create user notification
-		await notify({
-			title: 'Cashout successful!',
-			message: `Your request has been created. Balance credit may take 2-3 hours. We will notify you when completed.`,
-			uri: '/',
-			user: request.auth?.id(),
-		})
-		response.status(201).json({ status: "ok" });
+			//create user notification
+			await notify({
+				title: 'Quiz purchased!',
+				message: `Your quiz is purchased and ready to be played.`,
+				uri: '/',
+				user: request.auth?.id(),
+			})
+			response.status(201).json({ status: "ok" });
+		} else return response.status(400).json({ message: "Not enough balance." })
 	}
 
 	async getAll(request: Request, response: Response) {

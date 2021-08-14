@@ -77,26 +77,31 @@ class QuizApiController extends Controller_1.Controller {
                 });
                 yield p_quiz.save();
                 //deduct reward (quiz) points
-                let rp = (_b = request.auth) === null || _b === void 0 ? void 0 : _b.user().points;
-                rp = rp - request.body.count * 3;
-                if ((_c = request.auth) === null || _c === void 0 ? void 0 : _c.user()) {
-                    request.auth.user().points = rp;
-                    yield request.auth.user().save();
+                const rp = (_b = request.auth) === null || _b === void 0 ? void 0 : _b.user().points;
+                const deductAmt = request.body.count * 3;
+                if (deductAmt <= rp) {
+                    const new_rp = rp - deductAmt;
+                    if ((_c = request.auth) === null || _c === void 0 ? void 0 : _c.user()) {
+                        request.auth.user().points = new_rp;
+                        yield request.auth.user().save();
+                    }
+                    //insert in reward points collection
+                    const point = new RewardPoint_1.RewardPoint();
+                    point.point = -(request.body.count * 3);
+                    point.remarks = point.point + " points deducted for quiz purchase";
+                    point.user = (_d = request.auth) === null || _d === void 0 ? void 0 : _d.id();
+                    yield point.save();
+                    //create user notification
+                    yield notificationHelper_1.notify({
+                        title: 'Quiz purchased!',
+                        message: `Your quiz is purchased and ready to be played.`,
+                        uri: '/quiz/' + p_quiz.id,
+                        user: (_e = request.auth) === null || _e === void 0 ? void 0 : _e.id(),
+                    });
+                    response.status(201).json(p_quiz);
                 }
-                //insert in reward points collection
-                const point = new RewardPoint_1.RewardPoint();
-                point.point = -(request.body.count * 3);
-                point.remarks = point.point + " points deducted for quiz purchase";
-                point.user = (_d = request.auth) === null || _d === void 0 ? void 0 : _d.id();
-                yield point.save();
-                //create user notification
-                yield notificationHelper_1.notify({
-                    title: 'Quiz purchased!',
-                    message: `Your quiz is purchased and ready to be played.`,
-                    uri: '/quiz/' + p_quiz.id,
-                    user: (_e = request.auth) === null || _e === void 0 ? void 0 : _e.id(),
-                });
-                response.status(201).json(p_quiz);
+                else
+                    return response.status(201).json({ message: "Not enough balance." });
             }));
         });
     }
@@ -107,26 +112,31 @@ class QuizApiController extends Controller_1.Controller {
             if (!this.validate(request, response))
                 return;
             //deduct reward (quiz) points
-            let rp = (_a = request.auth) === null || _a === void 0 ? void 0 : _a.user().points;
-            rp = rp - request.body.count * 10;
-            if ((_b = request.auth) === null || _b === void 0 ? void 0 : _b.user()) {
-                request.auth.user().points = rp;
-                yield request.auth.user().save();
+            const rp = (_a = request.auth) === null || _a === void 0 ? void 0 : _a.user().points;
+            const deductAmt = request.body.count * 3;
+            if (deductAmt <= rp) {
+                const new_rp = rp - deductAmt;
+                if ((_b = request.auth) === null || _b === void 0 ? void 0 : _b.user()) {
+                    request.auth.user().points = new_rp;
+                    yield request.auth.user().save();
+                }
+                //insert in reward points collection
+                const point = new RewardPoint_1.RewardPoint();
+                point.point = -(request.body.count * 10);
+                point.remarks = point.point + "points deducted for mobile topip,";
+                point.user = (_c = request.auth) === null || _c === void 0 ? void 0 : _c.id();
+                yield point.save();
+                //create user notification
+                yield notificationHelper_1.notify({
+                    title: 'Quiz purchased!',
+                    message: `Your quiz is purchased and ready to be played.`,
+                    uri: '/',
+                    user: (_d = request.auth) === null || _d === void 0 ? void 0 : _d.id(),
+                });
+                response.status(201).json({ status: "ok" });
             }
-            //insert in reward points collection
-            const point = new RewardPoint_1.RewardPoint();
-            point.point = -(request.body.count * 10);
-            point.remarks = point.point + "points deducted for mobile topip,";
-            point.user = (_c = request.auth) === null || _c === void 0 ? void 0 : _c.id();
-            yield point.save();
-            //create user notification
-            yield notificationHelper_1.notify({
-                title: 'Cashout successful!',
-                message: `Your request has been created. Balance credit may take 2-3 hours. We will notify you when completed.`,
-                uri: '/',
-                user: (_d = request.auth) === null || _d === void 0 ? void 0 : _d.id(),
-            });
-            response.status(201).json({ status: "ok" });
+            else
+                return response.status(201).json({ message: "Not enough balance." });
         });
     }
     getAll(request, response) {
