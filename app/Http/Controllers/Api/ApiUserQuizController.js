@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ApiUserQuizController = void 0;
 const Controller_1 = require("../Kernel/Controller");
 const Attempt_1 = require("../../../models/Attempt");
+const RewardPoint_1 = require("../../../models/RewardPoint");
 class ApiUserQuizController extends Controller_1.Controller {
     constructor() {
         super();
@@ -44,6 +45,59 @@ class ApiUserQuizController extends Controller_1.Controller {
                 return response.status(404).json({ message: 'Quiz not found' });
             return response.json({
                 data: attempt
+            });
+        });
+    }
+    leaderboard(request, response) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const type = request.query.type || 'daily';
+            const points = yield RewardPoint_1.RewardPoint.aggregate([
+                {
+                    $project: {
+                        _id: 0,
+                        user: '$user',
+                        points: { $cond: [{ $gt: ['$point', 0] }, '$point', 0] },
+                        createdAt: '$createdAt'
+                    }
+                },
+                {
+                    $group: {
+                        _id: {
+                            user: '$user',
+                            year: { $year: '$createdAt' },
+                            month: { $month: '$createdAt' },
+                            day: { $dayOfMonth: '$createdAt' }
+                        },
+                        points: { $sum: '$points' }
+                    }
+                },
+                {
+                    $match: {
+                        '_id.year': new Date().getFullYear(),
+                        '_id.month': new Date().getMonth() + 1,
+                        '_id.day': new Date().getDate()
+                    }
+                },
+                {
+                    $lookup: {
+                        from: "users",
+                        localField: "_id.user",
+                        foreignField: "_id",
+                        as: "users"
+                    }
+                },
+                {
+                    $sort: {
+                        points: -1
+                    }
+                }
+            ]);
+            response.json({
+                data: points.map(rp => {
+                    const c = rp.users[0];
+                    c.points = rp.points;
+                    return c;
+                })
             });
         });
     }

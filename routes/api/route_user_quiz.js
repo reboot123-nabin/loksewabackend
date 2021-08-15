@@ -7,4 +7,6 @@ router.get('/quizzes/incomplete', Kernel.map('ApiUserQuizController@incompleteQu
 
 router.get('/quiz/:id/result-assessment', Kernel.map('ApiUserQuizController@resultAssessment'))
 
+router.get('/list/leaderboard', Kernel.map('ApiUserQuizController@leaderboard'))
+
 module.exports = router

@@ -98,7 +98,7 @@ class QuizApiController extends Controller_1.Controller {
                         uri: '/quiz/' + p_quiz.id,
                         user: (_e = request.auth) === null || _e === void 0 ? void 0 : _e.id(),
                     });
-                    response.status(201).json(p_quiz);
+                    response.status(400).json(p_quiz);
                 }
                 else
                     return response.status(201).json({ message: "Not enough balance." });
@@ -136,7 +136,7 @@ class QuizApiController extends Controller_1.Controller {
                 response.status(201).json({ status: "ok" });
             }
             else
-                return response.status(201).json({ message: "Not enough balance." });
+                return response.status(400).json({ message: "Not enough balance." });
         });
     }
     getAll(request, response) {
