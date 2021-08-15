@@ -17,6 +17,17 @@ router.post('/quiz', [
         })
 ], Kernel.map('QuizApiController@createQuiz'));
 
+router.post('/quiz/purchase/:id', [
+    body('title', 'Required').exists({ checkFalsy }),
+    body('count', 'Required').isNumeric(),
+    body('category', 'Required').exists({ checkFalsy })
+        .if(body('category').exists())
+        .custom(async (v, { req }) => {
+            const res = await exists('category', 'Category', 'name').run(req);
+            return res.isEmpty()
+        })
+], Kernel.map('QuizApiController@purchaseQuiz'));
+
 router.get('/quizzes', Kernel.map('QuizApiController@getAll'))
 
 router.get('/daily-quizzes', Kernel.map('QuizApiController@getDailyQuizzes'))

@@ -1,20 +1,20 @@
 import { Request, Response } from "express";
 import { Document } from "mongoose";
 import { Attempt } from "../../../models/Attempt";
-import {Options, Question, QuestionInterface} from '../../../models/Question';
-import {Quiz, QuizInterface} from '../../../models/Quiz';
+import { Options, Question, QuestionInterface } from '../../../models/Question';
+import { Quiz, QuizInterface } from '../../../models/Quiz';
 import { Controller } from "../Kernel/Controller";
-import {notify} from '../../../Helpers/notificationHelper'
-import {RewardPoint} from '../../../models/RewardPoint'
+import { notify } from '../../../Helpers/notificationHelper'
+import { RewardPoint } from '../../../models/RewardPoint'
 
 export class QuizApiController extends Controller {
-	
+
 	constructor() {
 		super()
-		
+
 		this.middleware('Auth')
 	}
-	
+
 	async createQuiz(request: Request, response: Response) {
 		if (!this.validate(request, response)) return;
 
@@ -33,7 +33,7 @@ export class QuizApiController extends Controller {
 					title: request.body.title,
 					difficulty: request.body.difficulty,
 					category: request.body.category,
-					points : 10,
+					points: 10,
 					count: request.body.count,
 					questions: results?.map((x) => x.id),
 				});
@@ -41,7 +41,7 @@ export class QuizApiController extends Controller {
 				//create user notification
 				await notify({
 					title: 'New quiz created',
-					message: `A quiz named '${quiz.title}' is created by ${request.auth?.user('first_name')}'`,
+					message: `A quiz named '${quiz.title}' is created.`,
 					uri: '/quiz/' + quiz.id,
 					user: request.auth?.id(),
 				})
@@ -50,15 +50,103 @@ export class QuizApiController extends Controller {
 		);
 	}
 
+	//User buys quiz with reward (quiz) points
+	async purchaseQuiz(request: Request, response: Response) {
+
+
+		if (!this.validate(request, response)) return;
+		Question.findRandom(
+			{
+				category: request.body.category,
+			},
+			"label category difficulty options._id options.value",
+			{
+				limit: request.body.count,
+			},
+			async (err: Error, results: Document[] | undefined) => {
+				if (err) return response.status(500).json({ message: err.message });
+				const p_quiz = new Quiz({
+					title: request.body.title,
+					category: request.body.category,
+					points: 5,
+					count: request.body.count,
+					questions: results?.map((x) => x.id),
+					user: request.auth?.id(),
+				});
+				await p_quiz.save();
+
+				//deduct reward (quiz) points
+				const rp = request.auth?.user().points
+				const deductAmt = request.body.count * 3
+				if (deductAmt <= rp) {
+					const new_rp = rp - deductAmt
+					if (request.auth?.user()) {
+						request.auth.user().points = new_rp
+						await request.auth.user().save()
+					}
+
+					//insert in reward points collection
+					const point = new RewardPoint()
+					point.point = -(request.body.count * 3)
+					point.remarks = point.point + " points deducted for quiz purchase";
+					point.user = request.auth?.id()
+					await point.save()
+
+					//create user notification
+					await notify({
+						title: 'Quiz purchased!',
+						message: `Your quiz is purchased and ready to be played.`,
+						uri: '/quiz/' + p_quiz.id,
+						user: request.auth?.id(),
+					})
+					response.status(400).json(p_quiz);
+				} else return response.status(201).json({ message: "Not enough balance." })
+			}
+		);
+	}
+
+	//User buys quiz with reward (quiz) points
+	async topupBalance(request: Request, response: Response) {
+
+		if (!this.validate(request, response)) return;
+
+		//deduct reward (quiz) points
+		const rp = request.auth?.user().points
+		const deductAmt = request.body.count * 3
+		if (deductAmt <= rp) {
+			const new_rp = rp - deductAmt
+			if (request.auth?.user()) {
+				request.auth.user().points = new_rp
+				await request.auth.user().save()
+			}
+
+			//insert in reward points collection
+			const point = new RewardPoint()
+			point.point = -(request.body.count * 10)
+			point.remarks = point.point + "points deducted for mobile topip,";
+			point.user = request.auth?.id()
+			await point.save()
+
+			//create user notification
+			await notify({
+				title: 'Quiz purchased!',
+				message: `Your quiz is purchased and ready to be played.`,
+				uri: '/',
+				user: request.auth?.id(),
+			})
+			response.status(201).json({ status: "ok" });
+		} else return response.status(400).json({ message: "Not enough balance." })
+	}
+
 	async getAll(request: Request, response: Response) {
 		const results = await Quiz.find({}).populate({
-			path : 'attempts',
-			match : {
-				user : request.auth?.id()
+			path: 'attempts',
+			match: {
+				user: request.auth?.id()
 			}
 		});
-		response.json(results.map((q : QuizInterface) => {
-			const quiz : { [key : string] : any } = q.toObject()
+		response.json(results.map((q: QuizInterface) => {
+			const quiz: { [key: string]: any } = q.toObject()
 			quiz.completed = quiz.attempts && quiz.attempts[0]?.completed
 			return quiz
 		}));
@@ -75,21 +163,21 @@ export class QuizApiController extends Controller {
 			"questions",
 			"label category options.value options._id" + (request.auth?.user('userType') === 'admin' ? ' options.is_correct' : '')
 		);
-		if (!quiz) return response.status(404).json({message : 'Quiz not found'})
+		if (!quiz) return response.status(404).json({ message: 'Quiz not found' })
 
 		const attempt = await Attempt.findOne({
-			quiz : quiz.id.toString(),
-			user : request.auth?.id()
+			quiz: quiz.id.toString(),
+			user: request.auth?.id()
 		})
-		
+
 		const answeredQuestions = attempt?.answers.map(ans => ans.question) || []
-		const questions = quiz.questions.map((question : QuestionInterface) => {
+		const questions = quiz.questions.map((question: QuestionInterface) => {
 			const q = question.toObject()
 			q.alreadyAnswered = answeredQuestions.includes(question.id.toString())
 			return q
 		})
 		// response.json(quiz);
-		response.json({...quiz.toObject(), questions, answeredQuestions});
+		response.json({ ...quiz.toObject(), questions, answeredQuestions });
 	}
 
 	async findQuiz(request: Request, response: Response) {
@@ -118,50 +206,50 @@ export class QuizApiController extends Controller {
 		if (!this.validate(request, response)) return;
 
 		let attempt = await Attempt.findOne({
-			quiz : request.params.quiz,
-			user : request.auth?.id()
+			quiz: request.params.quiz,
+			user: request.auth?.id()
 		}).populate('quiz');
 
-		if(attempt !== null) {
+		if (attempt !== null) {
 			await Quiz.populate(attempt.quiz, {
-				path : 'questions',
-				model : Question
+				path: 'questions',
+				model: Question
 			})
 		}
 
-		if(attempt == null) {
+		if (attempt == null) {
 			attempt = new Attempt({
 				quiz: request.params.quiz,
-				user : request.auth?.id()
+				user: request.auth?.id()
 			});
 			await Attempt.populate(attempt, {
-				path : 'quiz',
-				populate : {
-					path : 'questions'
+				path: 'quiz',
+				populate: {
+					path: 'questions'
 				}
 			})
 		}
 
 		// check for already answered
-		const exists = attempt.answers.filter(function ({question}) {
+		const exists = attempt.answers.filter(function ({ question }) {
 			return question == request.params.question
 		});
-		if(exists.length) {
-			return response.json({status : 'ok1', correct : exists[0].correct});
+		if (exists.length) {
+			return response.json({ status: 'ok1', correct: exists[0].correct });
 		}
 
 		let correct = false;
 
 		if (typeof attempt.quiz !== 'string') {
 			// check questions exists
-			const questionExists = attempt.quiz.questions.map((q : QuestionInterface) => q.id.toString()).includes(request.params.question)
-			if(!questionExists) {
-				return response.status(404).json({message : 'Question does not exsists'})
+			const questionExists = attempt.quiz.questions.map((q: QuestionInterface) => q.id.toString()).includes(request.params.question)
+			if (!questionExists) {
+				return response.status(404).json({ message: 'Question does not exsists' })
 			}
 			// check for correct answer
-			attempt.quiz.questions.filter((x : QuestionInterface) => x.id == request.params.question).map((question : QuestionInterface) => {
-				question?.options?.map((option : Options) => {
-					if(option.id === request.body.answer && option.is_correct) {
+			attempt.quiz.questions.filter((x: QuestionInterface) => x.id == request.params.question).map((question: QuestionInterface) => {
+				question?.options?.map((option: Options) => {
+					if (option.id === request.body.answer && option.is_correct) {
 						correct = true
 					}
 					return option
@@ -174,21 +262,22 @@ export class QuizApiController extends Controller {
 			const point = new RewardPoint()
 			point.point = typeof attempt.quiz !== 'string' ? (attempt.quiz.points || 10) : 10
 			point.remarks = point.point + " points for correct answer";
-			point.meta = {
-				quiz : request.params.quiz,
-				question : request.params.question,
-				answer : request.body.answer
-			}
+			point.user = request.auth?.id(),
+				point.meta = {
+					quiz: request.params.quiz,
+					question: request.params.question,
+					answer: request.body.answer
+				}
 			await point.save()
 
 			const user = request.auth?.user()
 			user.points = (user.points || 0) + point.point
 			await user.save()
 		}
-				
+
 		attempt.answers.push({
-			question : request.params.question,
-			answer : request.body.answer,
+			question: request.params.question,
+			answer: request.body.answer,
 			correct
 		})
 
@@ -209,8 +298,8 @@ export class QuizApiController extends Controller {
 	 * @param request
 	 * @param response
 	 */
-	async deleteQuiz(request : Request, response : Response) {
-		const result = await Quiz.findByIdAndDelete(request.params.id, {useFindAndModify : false})
-		response.json({status : 'ok', result })
+	async deleteQuiz(request: Request, response: Response) {
+		const result = await Quiz.findByIdAndDelete(request.params.id, { useFindAndModify: false })
+		response.json({ status: 'ok', result })
 	}
 }
