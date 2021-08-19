@@ -56,7 +56,8 @@ const UserSchema = new mongoose_1.default.Schema({
         type: String,
         required: false
     },
-    points: Number
+    points: Number,
+    last_login: Date
 }, {
     timestamps: true,
 });

@@ -54,7 +54,7 @@ class LoginApiController extends Controller_1.Controller {
         const expiresIn = request.body.rememberMe ? '30d' : this.expiresIn;
         const res = { errors: { email: 'Your login credentials did not match our records.' } };
         let attempted = false;
-        const getAccessToken = (err, user) => {
+        const getAccessToken = (err, user) => __awaiter(this, void 0, void 0, function* () {
             if (!user) {
                 if (attempted)
                     return response.status(422).json(res);
@@ -65,13 +65,16 @@ class LoginApiController extends Controller_1.Controller {
                 return response.status(500).json({ message: err.message });
             if (!bcryptjs_1.default.compareSync(request.body.password, user.password))
                 return response.status(422).json(res);
+            //last login record
             // if(!user.verifiedAt) return response.status(403).json({message: 'Email is not verified'})
+            user.last_login = new Date();
+            yield user.save();
             jsonwebtoken_1.default.sign({ data: { id: user.id } }, this.app_key, { expiresIn }, function (err, token) {
                 if (err)
                     return response.status(500).json({ message: err.message });
                 response.json({ token, user });
             });
-        };
+        });
         User_1.User.findOne({ email: request.body.email }, getAccessToken);
     }
 }
