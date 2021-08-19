@@ -57,7 +57,7 @@ export class QuizApiController extends Controller {
 		if (!this.validate(request, response)) return;
 		Question.findRandom(
 			{
-				category: request.body.category,
+				
 			},
 			"label category difficulty options._id options.value",
 			{
@@ -66,14 +66,15 @@ export class QuizApiController extends Controller {
 			async (err: Error, results: Document[] | undefined) => {
 				if (err) return response.status(500).json({ message: err.message });
 				const p_quiz = new Quiz({
-					title: request.body.title,
-					category: request.body.category,
+					title: 'Purchased quiz with points',
+					category: 'Purchase',
 					points: 5,
 					count: request.body.count,
 					questions: results?.map((x) => x.id),
 					user: request.auth?.id(),
 				});
 				await p_quiz.save();
+				await Quiz.populate(p_quiz, {path : 'questions'})
 
 				//deduct reward (quiz) points
 				const rp = request.auth?.user().points
@@ -99,8 +100,8 @@ export class QuizApiController extends Controller {
 						uri: '/quiz/' + p_quiz.id,
 						user: request.auth?.id(),
 					})
-					response.status(400).json(p_quiz);
-				} else return response.status(201).json({ message: "Not enough balance." })
+					response.status(201).json({quiz : p_quiz, points : new_rp});
+				} else return response.status(500).json({ message: "Not enough balance." })
 			}
 		);
 	}

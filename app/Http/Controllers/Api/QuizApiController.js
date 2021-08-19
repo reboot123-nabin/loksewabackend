@@ -59,23 +59,22 @@ class QuizApiController extends Controller_1.Controller {
         return __awaiter(this, void 0, void 0, function* () {
             if (!this.validate(request, response))
                 return;
-            Question_1.Question.findRandom({
-                category: request.body.category,
-            }, "label category difficulty options._id options.value", {
+            Question_1.Question.findRandom({}, "label category difficulty options._id options.value", {
                 limit: request.body.count,
             }, (err, results) => __awaiter(this, void 0, void 0, function* () {
                 var _a, _b, _c, _d, _e;
                 if (err)
                     return response.status(500).json({ message: err.message });
                 const p_quiz = new Quiz_1.Quiz({
-                    title: request.body.title,
-                    category: request.body.category,
+                    title: 'Purchased quiz with points',
+                    category: 'Purchase',
                     points: 5,
                     count: request.body.count,
                     questions: results === null || results === void 0 ? void 0 : results.map((x) => x.id),
                     user: (_a = request.auth) === null || _a === void 0 ? void 0 : _a.id(),
                 });
                 yield p_quiz.save();
+                yield Quiz_1.Quiz.populate(p_quiz, { path: 'questions' });
                 //deduct reward (quiz) points
                 const rp = (_b = request.auth) === null || _b === void 0 ? void 0 : _b.user().points;
                 const deductAmt = request.body.count * 3;
@@ -98,10 +97,10 @@ class QuizApiController extends Controller_1.Controller {
                         uri: '/quiz/' + p_quiz.id,
                         user: (_e = request.auth) === null || _e === void 0 ? void 0 : _e.id(),
                     });
-                    response.status(400).json(p_quiz);
+                    response.status(201).json({ quiz: p_quiz, points: new_rp });
                 }
                 else
-                    return response.status(201).json({ message: "Not enough balance." });
+                    return response.status(500).json({ message: "Not enough balance." });
             }));
         });
     }

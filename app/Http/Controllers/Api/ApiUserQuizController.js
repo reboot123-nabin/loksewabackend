@@ -13,6 +13,7 @@ exports.ApiUserQuizController = void 0;
 const Controller_1 = require("../Kernel/Controller");
 const Attempt_1 = require("../../../models/Attempt");
 const RewardPoint_1 = require("../../../models/RewardPoint");
+const TopUp_1 = require("../../../models/TopUp");
 class ApiUserQuizController extends Controller_1.Controller {
     constructor() {
         super();
@@ -30,7 +31,7 @@ class ApiUserQuizController extends Controller_1.Controller {
         });
     }
     resultAssessment(request, response) {
-        var _a;
+        var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
             const attempt = yield Attempt_1.Attempt.findOne({
                 quiz: request.params.id,
@@ -44,7 +45,8 @@ class ApiUserQuizController extends Controller_1.Controller {
             if (!attempt)
                 return response.status(404).json({ message: 'Quiz not found' });
             return response.json({
-                data: attempt
+                data: attempt,
+                points: (_b = request.auth) === null || _b === void 0 ? void 0 : _b.user('points')
             });
         });
     }
@@ -99,6 +101,36 @@ class ApiUserQuizController extends Controller_1.Controller {
                     return c;
                 })
             });
+        });
+    }
+    topupRequest(request, response) {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this.validate(request, response))
+                return;
+            const user = (_a = request.auth) === null || _a === void 0 ? void 0 : _a.user(), rupee = request.body.rupee, rp = (user === null || user === void 0 ? void 0 : user.points) || 0;
+            if (!user)
+                return response.status(401).json({ message: 'Unauthorized request' });
+            if (rupee * 10 > rp)
+                return response.status(400).json({ message: 'Insufficient reward points' });
+            const topUp = new TopUp_1.TopUp({
+                user: user._id,
+                point: rupee * 10,
+                amount: Number(rupee)
+            });
+            yield topUp.save();
+            user.points = rp - rupee * 10;
+            yield user.save();
+            const deductRp = new RewardPoint_1.RewardPoint({
+                user: user._id,
+                point: -(rupee * 10),
+                remarks: 'Deducted for top up request',
+                meta: {
+                    amount: rupee
+                }
+            });
+            yield deductRp.save();
+            response.status(201).json({ status: 'ok', points: user.points });
         });
     }
 }
