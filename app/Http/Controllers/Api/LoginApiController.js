@@ -55,11 +55,13 @@ class LoginApiController extends Controller_1.Controller {
         const res = { errors: { email: 'Your login credentials did not match our records.' } };
         let attempted = false;
         const getAccessToken = (err, user) => {
+            var _a;
             if (!user) {
                 if (attempted)
                     return response.status(422).json(res);
                 attempted = true;
-                return User_1.User.findOne({ phone: request.body.email }, getAccessToken);
+                const phone = ((_a = request.body.email) === null || _a === void 0 ? void 0 : _a.startsWith('+977')) ? request.body.email : `+977${request.body.email}`;
+                return User_1.User.findOne({ phone }, getAccessToken);
             }
             if (err)
                 return response.status(500).json({ message: err.message });

@@ -27,7 +27,7 @@ class PasswordResetApiController extends Controller_1.Controller {
                 return;
             const user = yield User_1.User.findOne({ phone: `+977${request.body.phone}` });
             if (!user)
-                return response.status(404).json({ message: 'Sorry email doesn\'t exists' });
+                return response.status(404).json({ message: 'Sorry phone doesn\'t exists' });
             response.json({
                 status: 'ok',
                 phone: user.phone
