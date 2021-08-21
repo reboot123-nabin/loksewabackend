@@ -43,7 +43,8 @@
     "morgan": "^1.10.0",
     "multer": "^1.4.2",
     "node-mailjet": "^3.3.1",
-    "nodemailer": "^6.4.17"
+    "nodemailer": "^6.4.17",
+    "sort-json-array": "^0.1.7"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.2",

@@ -14,6 +14,7 @@ const Controller_1 = require("../Kernel/Controller");
 const Attempt_1 = require("../../../models/Attempt");
 const RewardPoint_1 = require("../../../models/RewardPoint");
 const TopUp_1 = require("../../../models/TopUp");
+var sortJsonAray = require('sort-json-array');
 class ApiUserQuizController extends Controller_1.Controller {
     constructor() {
         super();
@@ -131,6 +132,33 @@ class ApiUserQuizController extends Controller_1.Controller {
             });
             yield deductRp.save();
             response.status(201).json({ status: 'ok', points: user.points });
+        });
+    }
+    // all requests seen by admin
+    getAllRequests(request, response) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const topupRequests = yield TopUp_1.TopUp.find({});
+            response.json({ data: sortJsonAray(topupRequests, 'created_at', 'des') });
+        });
+    }
+    // user specific requests seen by users
+    getMyRequests(request, response) {
+        var _a;
+        return __awaiter(this, void 0, void 0, function* () {
+            const myRequests = yield TopUp_1.TopUp.find({ user: (_a = request.auth) === null || _a === void 0 ? void 0 : _a.user()._id });
+            response.json({ data: sortJsonAray(myRequests, 'created_at', 'des') });
+        });
+    }
+    updateRequest(request, response) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this.validate(request, response))
+                return;
+            TopUp_1.TopUp.findByIdAndUpdate(request.params.id, {
+                status: request.body.status
+            }, {
+                useFindAndModify: false
+            }).then((result) => response.json({ status: 'ok', data: result }))
+                .catch((err) => response.status(500).json({ message: err.message }));
         });
     }
 }
