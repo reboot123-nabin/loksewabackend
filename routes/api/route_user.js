@@ -32,6 +32,7 @@ router.post('/user/profile/credential', [
     body('new_password', 'Password must contain at least 6 characters').isLength({min : 6}),
 ], Kernel.map('UserApiController@profileCredential'))
 
+router.get('/user/all',Kernel.map('UserApiController@getActiveUser'))
 // user mobile topup
 
 
