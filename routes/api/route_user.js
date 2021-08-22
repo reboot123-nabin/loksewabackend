@@ -34,5 +34,6 @@ router.post('/user/profile/credential', [
 
 // user mobile topup
 
+router.get('/users/all', Kernel.map('UserApiController@getAllUsers'))
 
 module.exports = router

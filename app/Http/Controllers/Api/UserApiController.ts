@@ -1,7 +1,7 @@
-import {Controller} from "../Kernel/Controller";
-import {Request, Response} from "express";
-import {File} from "../../../models/File";
-import {User} from "../../../models/User";
+import { Controller } from "../Kernel/Controller";
+import { Request, Response } from "express";
+import { File } from "../../../models/File";
+import { User } from "../../../models/User";
 import bcrypt from "bcryptjs";
 
 export class UserApiController extends Controller {
@@ -18,7 +18,7 @@ export class UserApiController extends Controller {
 
     async profilePicture(request: Request, response: Response) {
         if (!this.validate(request, response)) return
-        if (!request.file) return response.status(422).json({errors: {file: 'Please upload an image'}})
+        if (!request.file) return response.status(422).json({ errors: { file: 'Please upload an image' } })
 
         const image = new File({
             file_name: request.file.originalname,
@@ -32,8 +32,8 @@ export class UserApiController extends Controller {
         const user = request.auth?.user()
         user.profileImage = image
 
-        user.save().then(() => response.status(201).json({status: 'ok', data: image}))
-            .catch((err: Error) => response.status(500).json({message: err.message}));
+        user.save().then(() => response.status(201).json({ status: 'ok', data: image }))
+            .catch((err: Error) => response.status(500).json({ message: err.message }));
     }
 
     updateProfile(request: Request, response: Response) {
@@ -48,8 +48,8 @@ export class UserApiController extends Controller {
             useFindAndModify: false,
             new: true
         })
-            .then((result: any) => response.json({status: 'ok', data: result}))
-            .catch((err: Error) => response.status(500).json({message: err.message}))
+            .then((result: any) => response.json({ status: 'ok', data: result }))
+            .catch((err: Error) => response.status(500).json({ message: err.message }))
     }
 
     profileCredential(request: Request, response: Response) {
@@ -57,7 +57,7 @@ export class UserApiController extends Controller {
 
         const user = request.auth?.user()
         if (!bcrypt.compareSync(request.body.old_password, user.password))
-            return response.status(422).json({errors: {old_password: 'Old password did not match'}})
+            return response.status(422).json({ errors: { old_password: 'Old password did not match' } })
 
         const salt = bcrypt.genSaltSync(Number(process.env.SALT || 10))
 
@@ -68,7 +68,13 @@ export class UserApiController extends Controller {
             useFindAndModify: false,
             new: true
         })
-            .then((result: any) => response.json({status: 'ok', data: result}))
-            .catch((err: Error) => response.status(500).json({message: err.message}))
+            .then((result: any) => response.json({ status: 'ok', data: result }))
+            .catch((err: Error) => response.status(500).json({ message: err.message }))
+    }
+
+    getAllUsers(request: Request, response: Response) {
+        if (!this.validate(request, response)) return;
+        User.find({}).then((result: any) => response.json({ status: 'ok', data: result }))
+            .catch((err: Error) => response.status(500).json({ message: err.message }))
     }
 }

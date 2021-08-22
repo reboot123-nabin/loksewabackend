@@ -10,7 +10,8 @@ export interface UserInterface {
     password : string,
     profileImage : string,
     userType : 'admin' | 'user',
-    points : number
+    points : number,
+    last_login: Date
 }
 
 const UserSchema = new mongoose.Schema(
@@ -65,7 +66,8 @@ const UserSchema = new mongoose.Schema(
             type : String,
             required : false
         },
-        points : Number
+        points : Number,
+        last_login: Date
     }, 
     {
         timestamps : true,

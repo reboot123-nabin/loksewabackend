@@ -85,5 +85,11 @@ class UserApiController extends Controller_1.Controller {
             .then((result) => response.json({ status: 'ok', data: result }))
             .catch((err) => response.status(500).json({ message: err.message }));
     }
+    getAllUsers(request, response) {
+        if (!this.validate(request, response))
+            return;
+        User_1.User.find({}).then((result) => response.json({ status: 'ok', data: result }))
+            .catch((err) => response.status(500).json({ message: err.message }));
+    }
 }
 exports.UserApiController = UserApiController;
