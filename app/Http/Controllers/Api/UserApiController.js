@@ -103,5 +103,11 @@ class UserApiController extends Controller_1.Controller {
                 } });
         });
     }
+    getAllUser(request, response) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const user = yield User_1.User.find({});
+            response.status(200).json({ data: user });
+        });
+    }
 }
 exports.UserApiController = UserApiController;

@@ -89,4 +89,10 @@ export class UserApiController extends Controller {
             total : all
         }})
     }
+
+    async getAllUser(request:Request,response:Response){
+        const user=await User.find({});
+
+        response.status(200).json({data:user})
+    }
 }
