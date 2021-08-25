@@ -5,6 +5,8 @@ import mongoose from 'mongoose'
 import { RewardPoint } from '../../../models/RewardPoint'
 import { TopUp } from '../../../models/TopUp'
 
+var sortJsonAray = require('sort-json-array');
+
 export class ApiUserQuizController extends Controller {
     constructor() {
         super()
@@ -37,7 +39,7 @@ export class ApiUserQuizController extends Controller {
 
         return response.json({
             data: attempt,
-            points : request.auth?.user('points')
+            points: request.auth?.user('points')
         })
     }
 
@@ -78,10 +80,10 @@ export class ApiUserQuizController extends Controller {
                     foreignField: "_id",
                     as: "users"
                 }
-            }, 
+            },
             {
-                $sort : {
-                    points : -1
+                $sort: {
+                    points: -1
                 }
             }
         ])
@@ -95,21 +97,21 @@ export class ApiUserQuizController extends Controller {
     }
 
 
-    async topupRequest(request : Request, response : Response) {
-        if(!this.validate(request, response)) return;
+    async topupRequest(request: Request, response: Response) {
+        if (!this.validate(request, response)) return;
 
         const user = request.auth?.user(),
             rupee = request.body.rupee,
             rp = user?.points || 0;
 
-        if(!user) return response.status(401).json({message : 'Unauthorized request'})
+        if (!user) return response.status(401).json({ message: 'Unauthorized request' })
 
-        if(rupee * 10 > rp) return response.status(400).json({message : 'Insufficient reward points'})
+        if (rupee * 10 > rp) return response.status(400).json({ message: 'Insufficient reward points' })
 
         const topUp = new TopUp({
-            user : user._id,
-            point : rupee * 10,
-            amount : Number(rupee)
+            user: user._id,
+            point: rupee * 10,
+            amount: Number(rupee)
         })
 
         await topUp.save()
@@ -118,16 +120,40 @@ export class ApiUserQuizController extends Controller {
         await user.save()
 
         const deductRp = new RewardPoint({
-            user : user._id,
-            point : -(rupee * 10),
-            remarks : 'Deducted for top up request',
-            meta : {
-                amount : rupee
+            user: user._id,
+            point: -(rupee * 10),
+            remarks: 'Deducted for top up request',
+            meta: {
+                amount: rupee
             }
         })
 
         await deductRp.save()
 
-        response.status(201).json({status : 'ok', points : user.points})
+        response.status(201).json({ status: 'ok', points: user.points })
+    }
+
+    // all requests seen by admin
+    async getAllRequests(request: Request, response: Response) {
+        const topupRequests = await TopUp.find({})
+        response.json({ data: sortJsonAray(topupRequests, 'created_at', 'des') })
+    }
+    
+    // user specific requests seen by users
+    async getMyRequests(request: Request, response: Response) {
+        const myRequests = await TopUp.find({user: request.auth?.user()._id})
+        response.json({ data: sortJsonAray(myRequests, 'created_at', 'des') })
+    }
+
+
+    async updateRequest(request: Request, response: Response) {
+        if (!this.validate(request, response)) return;
+
+        TopUp.findByIdAndUpdate(request.params.id, {
+            status: request.body.status
+        }, {
+            useFindAndModify:false
+        }).then((result: any) => response.json({status: 'ok', data: result}))
+        .catch((err: Error) => response.status(500).json({message: err.message}))
     }
 }

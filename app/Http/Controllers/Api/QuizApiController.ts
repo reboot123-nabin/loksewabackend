@@ -106,39 +106,6 @@ export class QuizApiController extends Controller {
 		);
 	}
 
-	//User buys quiz with reward (quiz) points
-	async topupBalance(request: Request, response: Response) {
-
-		if (!this.validate(request, response)) return;
-
-		//deduct reward (quiz) points
-		const rp = request.auth?.user().points
-		const deductAmt = request.body.count * 3
-		if (deductAmt <= rp) {
-			const new_rp = rp - deductAmt
-			if (request.auth?.user()) {
-				request.auth.user().points = new_rp
-				await request.auth.user().save()
-			}
-
-			//insert in reward points collection
-			const point = new RewardPoint()
-			point.point = -(request.body.count * 10)
-			point.remarks = point.point + "points deducted for mobile topip,";
-			point.user = request.auth?.id()
-			await point.save()
-
-			//create user notification
-			await notify({
-				title: 'Quiz purchased!',
-				message: `Your quiz is purchased and ready to be played.`,
-				uri: '/',
-				user: request.auth?.id(),
-			})
-			response.status(201).json({ status: "ok" });
-		} else return response.status(400).json({ message: "Not enough balance." })
-	}
-
 	async getAll(request: Request, response: Response) {
 		const results = await Quiz.find({}).populate({
 			path: 'attempts',
