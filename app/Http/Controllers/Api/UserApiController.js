@@ -17,6 +17,7 @@ const Controller_1 = require("../Kernel/Controller");
 const File_1 = require("../../../models/File");
 const User_1 = require("../../../models/User");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const moment_1 = __importDefault(require("moment"));
 class UserApiController extends Controller_1.Controller {
     constructor() {
         super();
@@ -90,6 +91,29 @@ class UserApiController extends Controller_1.Controller {
             return;
         User_1.User.find({}).then((result) => response.json({ status: 'ok', data: result }))
             .catch((err) => response.status(500).json({ message: err.message }));
+    }
+    getActiveUser(request, response) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const user = yield User_1.User.countDocuments({
+                userType: 'user',
+                last_login: {
+                    $lte: moment_1.default().subtract(7, 'days').toDate()
+                }
+            });
+            const all = yield User_1.User.countDocuments({
+                userType: 'user'
+            });
+            response.status(200).json({ data: {
+                    activeUsers: user,
+                    total: all
+                } });
+        });
+    }
+    getAllUser(request, response) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const user = yield User_1.User.find({});
+            response.status(200).json({ data: user });
+        });
     }
 }
 exports.UserApiController = UserApiController;

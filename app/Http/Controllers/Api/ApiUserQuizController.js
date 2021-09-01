@@ -137,7 +137,7 @@ class ApiUserQuizController extends Controller_1.Controller {
     // all requests seen by admin
     getAllRequests(request, response) {
         return __awaiter(this, void 0, void 0, function* () {
-            const topupRequests = yield TopUp_1.TopUp.find({});
+            const topupRequests = yield TopUp_1.TopUp.find({}).populate('user');
             response.json({ data: sortJsonAray(topupRequests, 'created_at', 'des') });
         });
     }
@@ -145,7 +145,7 @@ class ApiUserQuizController extends Controller_1.Controller {
     getMyRequests(request, response) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
-            const myRequests = yield TopUp_1.TopUp.find({ user: (_a = request.auth) === null || _a === void 0 ? void 0 : _a.user()._id });
+            const myRequests = yield TopUp_1.TopUp.find({ user: (_a = request.auth) === null || _a === void 0 ? void 0 : _a.user()._id }).populate('user');
             response.json({ data: sortJsonAray(myRequests, 'created_at', 'des') });
         });
     }

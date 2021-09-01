@@ -135,13 +135,13 @@ export class ApiUserQuizController extends Controller {
 
     // all requests seen by admin
     async getAllRequests(request: Request, response: Response) {
-        const topupRequests = await TopUp.find({})
+        const topupRequests = await TopUp.find({}).populate('user')
         response.json({ data: sortJsonAray(topupRequests, 'created_at', 'des') })
     }
     
     // user specific requests seen by users
     async getMyRequests(request: Request, response: Response) {
-        const myRequests = await TopUp.find({user: request.auth?.user()._id})
+        const myRequests = await TopUp.find({user: request.auth?.user()._id}).populate('user')
         response.json({ data: sortJsonAray(myRequests, 'created_at', 'des') })
     }
 

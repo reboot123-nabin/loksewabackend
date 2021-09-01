@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import { File } from "../../../models/File";
 import { User } from "../../../models/User";
 import bcrypt from "bcryptjs";
+import moment from 'moment'
 
 export class UserApiController extends Controller {
     constructor() {
@@ -76,5 +77,28 @@ export class UserApiController extends Controller {
         if (!this.validate(request, response)) return;
         User.find({}).then((result: any) => response.json({ status: 'ok', data: result }))
             .catch((err: Error) => response.status(500).json({ message: err.message }))
+    }
+
+ 
+    async getActiveUser(request: Request, response: Response) {
+        const user = await User.countDocuments({
+            userType : 'user',
+            last_login : {
+                $lte : moment().subtract(7, 'days').toDate()
+            }
+        });
+        const all = await User.countDocuments({
+            userType : 'user'
+        });
+        response.status(200).json({data: {
+            activeUsers : user,
+            total : all
+        }})
+    }
+
+    async getAllUser(request:Request,response:Response){
+        const user=await User.find({});
+
+        response.status(200).json({data:user})
     }
 }
