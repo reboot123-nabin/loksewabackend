@@ -11,10 +11,10 @@ const cookie_parser_1 = __importDefault(require("cookie-parser"));
 dotenv_1.default.config();
 // database connection
 require('./database/mongoose');
-const app = express_1.default();
+const app = (0, express_1.default)();
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
-app.use(cookie_parser_1.default());
+app.use((0, cookie_parser_1.default)());
 const serviceContainer = new ServiceContainer_js_1.ServiceContainer(app);
 serviceContainer.run();
 app.listen(process.env.PORT || 9000, () => {

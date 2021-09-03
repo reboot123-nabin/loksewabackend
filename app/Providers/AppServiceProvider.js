@@ -19,7 +19,7 @@ class AppServiceProvider extends ServiceProvider_1.ServiceProvider {
         this.app.set('view engine', 'hbs');
         this.app.use(express_1.default.static('public'));
         if (process.env.NODE_ENV === 'development') {
-            this.app.use(morgan_1.default('dev'));
+            this.app.use((0, morgan_1.default)('dev'));
         }
     }
 }

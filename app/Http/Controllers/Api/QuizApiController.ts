@@ -20,10 +20,10 @@ export class QuizApiController extends Controller {
 
 		Question.findRandom(
 			{
-				category: request.body.category,
-				difficulty: request.body.difficulty,
+				// category: request.body.category,
+				// difficulty: request.body.difficulty,
 			},
-			"label category difficulty options._id options.value",
+			"label options._id options.value",
 			{
 				limit: request.body.count,
 			},

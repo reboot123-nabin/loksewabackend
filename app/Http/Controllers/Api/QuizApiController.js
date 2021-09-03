@@ -26,9 +26,9 @@ class QuizApiController extends Controller_1.Controller {
             if (!this.validate(request, response))
                 return;
             Question_1.Question.findRandom({
-                category: request.body.category,
-                difficulty: request.body.difficulty,
-            }, "label category difficulty options._id options.value", {
+            // category: request.body.category,
+            // difficulty: request.body.difficulty,
+            }, "label options._id options.value", {
                 limit: request.body.count,
             }, (err, results) => __awaiter(this, void 0, void 0, function* () {
                 var _a;
@@ -44,7 +44,7 @@ class QuizApiController extends Controller_1.Controller {
                 });
                 yield quiz.save();
                 //create user notification
-                yield notificationHelper_1.notify({
+                yield (0, notificationHelper_1.notify)({
                     title: 'New quiz created',
                     message: `A quiz named '${quiz.title}' is created.`,
                     uri: '/quiz/' + quiz.id,
@@ -91,7 +91,7 @@ class QuizApiController extends Controller_1.Controller {
                     point.user = (_d = request.auth) === null || _d === void 0 ? void 0 : _d.id();
                     yield point.save();
                     //create user notification
-                    yield notificationHelper_1.notify({
+                    yield (0, notificationHelper_1.notify)({
                         title: 'Quiz purchased!',
                         message: `Your quiz is purchased and ready to be played.`,
                         uri: '/quiz/' + p_quiz.id,

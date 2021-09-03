@@ -7,14 +7,14 @@ const checkFalsy = true;
 
 router.post('/quiz', [
     body('title', 'Required').exists({ checkFalsy }),
-    body('difficulty', 'Required').isIn(['Easy', 'Medium', 'Hard']),
+    // body('difficulty', 'Required').isIn(['Easy', 'Medium', 'Hard']),
     body('count', 'Required').isNumeric(),
-    body('category', 'Required').exists({ checkFalsy })
-        .if(body('category').exists())
-        .custom(async (v, { req }) => {
-            const res = await exists('category', 'Category', 'name').run(req);
-            return res.isEmpty()
-        })
+    // body('category', 'Required').exists({ checkFalsy })
+    //     .if(body('category').exists())
+    //     .custom(async (v, { req }) => {
+    //         const res = await exists('category', 'Category', 'name').run(req);
+    //         return res.isEmpty()
+    //     })
 ], Kernel.map('QuizApiController@createQuiz'));
 
 router.post('/quiz/purchase/:id', [

@@ -97,7 +97,7 @@ class UserApiController extends Controller_1.Controller {
             const user = yield User_1.User.countDocuments({
                 userType: 'user',
                 last_login: {
-                    $lte: moment_1.default().subtract(7, 'days').toDate()
+                    $lte: (0, moment_1.default)().subtract(7, 'days').toDate()
                 }
             });
             const all = yield User_1.User.countDocuments({

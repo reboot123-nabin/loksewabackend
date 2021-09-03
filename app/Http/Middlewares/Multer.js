@@ -30,5 +30,5 @@ const storage = multer_1.default.diskStorage({
 if (!fs_1.default.existsSync(process.cwd() + '/files')) {
     fs_1.default.mkdirSync(process.cwd() + '/files');
 }
-const upload = multer_1.default({ storage });
+const upload = (0, multer_1.default)({ storage });
 module.exports = upload;

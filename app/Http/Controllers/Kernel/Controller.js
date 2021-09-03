@@ -5,7 +5,7 @@ const express_validator_1 = require("express-validator");
 const BaseController_1 = require("./BaseController");
 class Controller extends BaseController_1.BaseController {
     validate(request, response) {
-        const v = express_validator_1.validationResult(request);
+        const v = (0, express_validator_1.validationResult)(request);
         if (!v.isEmpty()) {
             const errors = {};
             const validationsErrors = v.array();

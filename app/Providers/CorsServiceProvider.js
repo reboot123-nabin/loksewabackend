@@ -10,7 +10,7 @@ class CorsServiceProvider extends ServiceProvider_1.ServiceProvider {
     boot() {
     }
     register() {
-        this.app.use(cors_1.default());
+        this.app.use((0, cors_1.default)());
     }
 }
 exports.CorsServiceProvider = CorsServiceProvider;
