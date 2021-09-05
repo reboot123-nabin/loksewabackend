@@ -4,6 +4,8 @@ import { Attempt } from '../../../models/Attempt'
 import mongoose from 'mongoose'
 import { RewardPoint } from '../../../models/RewardPoint'
 import { TopUp } from '../../../models/TopUp'
+import { notify } from '../../../Helpers/notificationHelper'
+import { User } from '../../../models/User'
 
 var sortJsonAray = require('sort-json-array');
 
@@ -128,6 +130,15 @@ export class ApiUserQuizController extends Controller {
             }
         })
 
+        //create user notification
+        await notify({
+            title: 'Quiz purchased!',
+            message: `Your quiz is purchased and ready to be played.`,
+            uri: '',
+            user: request.auth?.id(),
+        })
+
+
         await deductRp.save()
 
         response.status(201).json({ status: 'ok', points: user.points })
@@ -136,12 +147,31 @@ export class ApiUserQuizController extends Controller {
     // all requests seen by admin
     async getAllRequests(request: Request, response: Response) {
         const topupRequests = await TopUp.find({}).populate('user')
-        response.json({ data: sortJsonAray(topupRequests, 'created_at', 'des') })
+        const quiz_played = await Attempt.countDocuments({
+            completed: true,
+        });
+        const agg = await TopUp.aggregate([
+            {
+                $group : {
+                    _id : {status : '$status'},
+                    amount : {$sum : '$amount'}
+                }
+            }
+        ])
+        let topupRequest = 0;
+        for(const topup of agg) {
+            if(topup._id.status !== 'complete') continue;
+            topupRequest = topup.amount;
+        }
+        const reward_users = await User.find({
+            userType: 'user',
+        }, null, { limit: 10, sort : {points : -1} });
+        response.json({ data: sortJsonAray(topupRequests, 'created_at', 'des'), quiz_played, topupRequest,reward_users })
     }
-    
+
     // user specific requests seen by users
     async getMyRequests(request: Request, response: Response) {
-        const myRequests = await TopUp.find({user: request.auth?.user()._id}).populate('user')
+        const myRequests = await TopUp.find({ user: request.auth?.user()._id }).populate('user')
         response.json({ data: sortJsonAray(myRequests, 'created_at', 'des') })
     }
 
@@ -152,8 +182,8 @@ export class ApiUserQuizController extends Controller {
         TopUp.findByIdAndUpdate(request.params.id, {
             status: request.body.status
         }, {
-            useFindAndModify:false
-        }).then((result: any) => response.json({status: 'ok', data: result}))
-        .catch((err: Error) => response.status(500).json({message: err.message}))
+            useFindAndModify: false
+        }).then((result: any) => response.json({ status: 'ok', data: result }))
+            .catch((err: Error) => response.status(500).json({ message: err.message }))
     }
 }

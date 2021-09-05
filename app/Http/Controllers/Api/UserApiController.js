@@ -97,16 +97,25 @@ class UserApiController extends Controller_1.Controller {
             const user = yield User_1.User.countDocuments({
                 userType: 'user',
                 last_login: {
-                    $lte: (0, moment_1.default)().subtract(7, 'days').toDate()
+                    $gte: (0, moment_1.default)().subtract(7, 'days').toDate()
                 }
             });
+            const recent_users = yield User_1.User.find({
+                userType: 'user',
+                createdAt: {
+                    $gte: (0, moment_1.default)().subtract(7, 'days').toDate()
+                },
+            }, null, { limit: 10 });
             const all = yield User_1.User.countDocuments({
                 userType: 'user'
             });
-            response.status(200).json({ data: {
+            response.status(200).json({
+                data: {
                     activeUsers: user,
-                    total: all
-                } });
+                    total: all,
+                    recent_users
+                }
+            });
         });
     }
     getAllUser(request, response) {

@@ -59,7 +59,7 @@ export class QuizApiController extends Controller {
 			{
 				
 			},
-			"label category difficulty options._id options.value",
+			"label options._id options.value",
 			{
 				limit: request.body.count,
 			},

@@ -79,26 +79,36 @@ export class UserApiController extends Controller {
             .catch((err: Error) => response.status(500).json({ message: err.message }))
     }
 
- 
+
     async getActiveUser(request: Request, response: Response) {
         const user = await User.countDocuments({
-            userType : 'user',
-            last_login : {
-                $lte : moment().subtract(7, 'days').toDate()
+            userType: 'user',
+            last_login: {
+                $gte: moment().subtract(7, 'days').toDate()
             }
         });
+        const recent_users = await User.find({
+            userType: 'user',
+            createdAt: {
+                $gte: moment().subtract(7, 'days').toDate()
+            },
+        }, null, { limit: 10 });
+
         const all = await User.countDocuments({
-            userType : 'user'
+            userType: 'user'
         });
-        response.status(200).json({data: {
-            activeUsers : user,
-            total : all
-        }})
+        response.status(200).json({
+            data: {
+                activeUsers: user,
+                total: all,
+                recent_users
+            }
+        })
     }
 
-    async getAllUser(request:Request,response:Response){
-        const user=await User.find({});
+    async getAllUser(request: Request, response: Response) {
+        const user = await User.find({});
 
-        response.status(200).json({data:user})
+        response.status(200).json({ data: user })
     }
 }

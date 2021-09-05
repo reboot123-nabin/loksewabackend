@@ -59,7 +59,7 @@ class QuizApiController extends Controller_1.Controller {
         return __awaiter(this, void 0, void 0, function* () {
             if (!this.validate(request, response))
                 return;
-            Question_1.Question.findRandom({}, "label category difficulty options._id options.value", {
+            Question_1.Question.findRandom({}, "label options._id options.value", {
                 limit: request.body.count,
             }, (err, results) => __awaiter(this, void 0, void 0, function* () {
                 var _a, _b, _c, _d, _e;

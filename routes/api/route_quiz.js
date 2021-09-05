@@ -17,7 +17,7 @@ router.post('/quiz', [
     //     })
 ], Kernel.map('QuizApiController@createQuiz'));
 
-router.post('/quiz/purchase/:id', [
+router.post('/quiz/purchase', [
     // body('title', 'Required').exists({ checkFalsy }),
     body('count', 'Required').isNumeric(),
     // body('category', 'Required').exists({ checkFalsy })

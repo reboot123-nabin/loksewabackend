@@ -14,6 +14,8 @@ const Controller_1 = require("../Kernel/Controller");
 const Attempt_1 = require("../../../models/Attempt");
 const RewardPoint_1 = require("../../../models/RewardPoint");
 const TopUp_1 = require("../../../models/TopUp");
+const notificationHelper_1 = require("../../../Helpers/notificationHelper");
+const User_1 = require("../../../models/User");
 var sortJsonAray = require('sort-json-array');
 class ApiUserQuizController extends Controller_1.Controller {
     constructor() {
@@ -105,7 +107,7 @@ class ApiUserQuizController extends Controller_1.Controller {
         });
     }
     topupRequest(request, response) {
-        var _a;
+        var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
             if (!this.validate(request, response))
                 return;
@@ -130,6 +132,13 @@ class ApiUserQuizController extends Controller_1.Controller {
                     amount: rupee
                 }
             });
+            //create user notification
+            yield (0, notificationHelper_1.notify)({
+                title: 'Quiz purchased!',
+                message: `Your quiz is purchased and ready to be played.`,
+                uri: '',
+                user: (_b = request.auth) === null || _b === void 0 ? void 0 : _b.id(),
+            });
             yield deductRp.save();
             response.status(201).json({ status: 'ok', points: user.points });
         });
@@ -138,7 +147,27 @@ class ApiUserQuizController extends Controller_1.Controller {
     getAllRequests(request, response) {
         return __awaiter(this, void 0, void 0, function* () {
             const topupRequests = yield TopUp_1.TopUp.find({}).populate('user');
-            response.json({ data: sortJsonAray(topupRequests, 'created_at', 'des') });
+            const quiz_played = yield Attempt_1.Attempt.countDocuments({
+                completed: true,
+            });
+            const agg = yield TopUp_1.TopUp.aggregate([
+                {
+                    $group: {
+                        _id: { status: '$status' },
+                        amount: { $sum: '$amount' }
+                    }
+                }
+            ]);
+            let topupRequest = 0;
+            for (const topup of agg) {
+                if (topup._id.status !== 'complete')
+                    continue;
+                topupRequest = topup.amount;
+            }
+            const reward_users = yield User_1.User.find({
+                userType: 'user',
+            }, null, { limit: 10, sort: { points: -1 } });
+            response.json({ data: sortJsonAray(topupRequests, 'created_at', 'des'), quiz_played, topupRequest, reward_users });
         });
     }
     // user specific requests seen by users
